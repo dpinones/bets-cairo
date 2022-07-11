@@ -20,6 +20,47 @@ end
 func bets(id_match: felt, id_bet: felt) -> (bet: Bet):
 end
 
+@view
+func view_match_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (count: felt):
+    let (count) = match_count.read() 
+    return (count)
+end
+
+@view
+func view_bet_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id_match: felt) -> (bet_count: felt):
+    let (count) = bet_count.read(id_match)
+    return (count)
+end
+
+@view
+func view_bets{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id_match: felt) -> (records_len: felt, records: Bet*):
+    alloc_locals
+
+    let (records: Bet*) = alloc()
+    let (count_bets) = bet_count.read(id_match)
+    _recurse_view_solution_records(id_match, count_bets, records, 0)
+
+    return (count_bets, records)
+end
+
+func _recurse_view_solution_records {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr} (
+        id_match: felt,
+        len : felt,
+        arr : Bet*,
+        idx : felt
+    ) -> ():
+    
+    if idx == len:
+        return ()
+    end
+    
+    let (record : Bet) = bets.read(id_match, idx)
+    assert arr[idx] = record
+    
+    _recurse_view_solution_records (id_match, len, arr, idx+1)
+    return()
+end
+
 @external
 func create_match{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (id_match: felt):
     let (id_match) = match_count.read()
