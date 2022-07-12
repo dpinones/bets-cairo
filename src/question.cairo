@@ -2,14 +2,26 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
+from starkware.starknet.common.syscalls import get_caller_address
+from starkware.cairo.common.bool import TRUE, FALSE
+
+struct Test:
+    # member id: felt
+    member name: felt
+    member created_at: felt
+    member enabled: felt
+end
 
 struct Question:
     member description: felt
-    member possible_answer1: felt
-    member possible_answer2: felt
-    member possible_answer3: felt
-    member possible_answer4: felt
-    # member correct_answer: felt
+    member optionA: felt
+    member optionB: felt
+    member optionC: felt
+    member optionD: felt
+end
+
+@storage_var
+func test(id_test: felt) -> (test: Test):
 end
 
 @storage_var
@@ -38,6 +50,19 @@ end
 func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id_test: felt) -> (bet_count: felt):
     let (count) = question_count.read(id_test)
     return (count)
+end
+
+@view
+func view_answers_correct{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id_test: felt, id_question: felt) -> (correct: felt):
+    let (correct) = answers_correct.read(id_test, id_question)
+    return (correct)
+end
+
+@view
+func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test: felt, id_question: felt) -> (question: Question):
+    let (question : Question) = questions.read(id_test, id_question)
+    return (question)
 end
 
 @view
@@ -70,8 +95,12 @@ func _recurse_view_solution_records {syscall_ptr : felt*, pedersen_ptr : HashBui
 end
 
 @external
-func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (id_match: felt):
+func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+        name: felt,
+    ) -> (id_test: felt):    
     let (id_test) = test_count.read()
+    let (caller_address) = get_caller_address()
+    test.write(id_test, Test(name, caller_address, TRUE))
     test_count.write(id_test + 1)
     return (id_test)
 end
@@ -80,20 +109,20 @@ end
 func add_question {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test: felt,
     description: felt,
-    possible_answer1: felt,
-    possible_answer2: felt,
-    possible_answer3: felt,
-    possible_answer4: felt
+    optionA: felt,
+    optionB: felt,
+    optionC: felt,
+    optionD: felt
     ) -> (
     id_question: felt):
 
     let (id_question) = question_count.read(id_test)
     questions.write(id_test, id_question, Question(
         description,
-        possible_answer1,
-        possible_answer2,
-        possible_answer3,
-        possible_answer4
+        optionA,
+        optionB,
+        optionC,
+        optionD
     ))
     question_count.write(id_test, id_question + 1)
     
@@ -134,11 +163,11 @@ func points {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test: felt,
     answers_len: felt,
     answers: felt*
-    ) -> ():
+    ) -> (point: felt):
     let (count_question) = question_count.read(id_test)
-    _recurse_add_answers(id_test, count_question, answers, 0)
+    let (point) = _recurse_add_answers(id_test, count_question, answers, 0)
 
-    return()
+    return(point)
 end
 
 func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr} (
@@ -148,19 +177,52 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
         idx : felt
     ) -> (points: felt):
     alloc_locals    
-    if idx == len:
+    if len == 0:
         return (0)
     end
     
+    # obtain id correct answer
     let (answer_correct) = answers_correct.read(id_test, idx)
+
+    # obtain question
+    let (question : Question) = questions.read(id_test, idx)
+
+    # obtain the correct answer
+    let (correct_answer) = _get_answer_for_id(question, answer_correct)
+    tempvar answer_user: felt
+    answer_user = cast([arr], felt)
     local t
-    if answer_correct == arr[idx]:
+    # assert answer_user = 44
+    # assert correct_answer = 44
+    if answer_user == correct_answer:
         t = 5
     else:
         t = 0
     end
-
-    let (local total) = _recurse_add_answers (id_test, len-1, arr, idx+1)    
+    # assert t = 5
+    let (local total) = _recurse_add_answers (id_test, len-1, arr + 1, idx+1)    
     let res = t + total
-    return(total)
+    return(res)
+end
+
+# test
+@external
+func _get_answer_for_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr} (
+        question: Question,
+        id_answer: felt
+    ) -> (correct_answer: felt):
+    tempvar answer_user: felt
+    if id_answer == 0:
+        answer_user = question.optionA
+    end
+    if id_answer == 1:
+        answer_user = question.optionB
+    end
+    if id_answer == 2:
+        answer_user = question.optionC
+    end
+    if id_answer == 3:
+        answer_user = question.optionD
+    end    
+    return (answer_user)
 end
