@@ -8,6 +8,7 @@ from src.question import view_question_count
 from src.question import view_questions
 # from src.question import view_answers_correct
 from src.question import create_test
+from src.question import ready_test
 from src.question import add_question
 from src.question import add_correct_answer
 from src.question import points
@@ -25,6 +26,8 @@ func test_sum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     # local array : felt* = new (3)
     local array : felt* = new (3, 1)
     add_correct_answer(test_id, 2, array)
+
+    ready_test(test_id)
 
     let (count_questions) = view_question_count(test_id)
     assert count_questions = 2
