@@ -43,7 +43,7 @@ func test_sum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
     # assert correct_answer = 3
 
     # local array2 : felt* = new (44)
-    local array2 : felt* = new (44, 22)
+    local array2 : felt* = new (3, 1)
     let (point) = points(test_id, 2, array2)
     assert point = 10
     return ()
