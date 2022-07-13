@@ -40,6 +40,14 @@ end
 func answers_correct(id_test: felt, id_question: felt) -> (answers_correct: felt):
 end
 
+@storage_var
+func users_test(user_address: felt, id_test: felt) -> (bool: felt):
+end
+
+@storage_var
+func users_test_question_answer(user_address: felt, id_test: felt, id_question: felt) -> (answer: felt):
+end
+
 @view
 func view_test_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (count: felt):
     let (count) = test_count.read() 
@@ -137,6 +145,8 @@ func add_correct_answer {syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     ) -> ():
     let (count_question) = question_count.read(id_test)
     _recurse_add_correct_answer(id_test, count_question, answers, 0)
+    let (caller_address) = get_caller_address()
+    users_test.write(caller_address, id_test, TRUE)
 
     return()
 end
@@ -181,6 +191,8 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
         return (0)
     end
     
+
+
     # obtain id correct answer
     let (answer_correct) = answers_correct.read(id_test, idx)
 
@@ -191,6 +203,11 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     let (correct_answer) = _get_answer_for_id(question, answer_correct)
     tempvar answer_user: felt
     answer_user = cast([arr], felt)
+
+    # save answer the user
+    let (caller_address) = get_caller_address()
+    users_test_question_answer.write(caller_address, id_test, idx, answer_user)
+
     local t
     # assert answer_user = 44
     # assert correct_answer = 44
