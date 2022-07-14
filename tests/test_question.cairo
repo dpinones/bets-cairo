@@ -12,11 +12,12 @@ from src.question import create_test
 from src.question import ready_test
 from src.question import add_question
 from src.question import add_correct_answer
-from src.question import points
+from src.question import send_answer
 from src.question import _get_answer_for_id
 from src.question import view_question
 from src.question import view_count_users_test
 from src.question import view_user_test
+from src.question import view_points_user_test
 from starkware.starknet.common.syscalls import get_caller_address
 
 
@@ -52,16 +53,16 @@ func test_sum{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}
 
     # local array2 : felt* = new (44)
     local array2 : felt* = new (3, 1)
-    let (point) = points(test_id, 2, array2)
-    assert point = 10
+    send_answer(test_id, 2, array2)
 
     let (count_users) = view_count_users_test(test_id)
     assert count_users = 1
 
     let (user_test) = view_user_test(0)
     assert user_test = TRUE
-    # let (caller_address) = get_caller_address()
-
+    
+    let (point) = view_points_user_test(test_id)
+    assert point = 10
 
     return ()
 end
