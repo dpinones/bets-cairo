@@ -141,12 +141,6 @@ func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (count)
 end
 
-# @view
-# func view_answers_correct{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(id_test: felt, id_question: felt) -> (correct: felt):
-#     let (correct) = answers_correct.read(id_test, id_question)
-#     return (correct)
-# end
-
 @view
 func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, id_question : felt
@@ -193,14 +187,6 @@ func view_points_user_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     let (points) = points_users_test.read(caller_address, id_test)
     return (points)
 end
-
-# @view
-# func view_users_test_question_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     id_test: felt) -> (bool: felt):
-#     let (caller_address) = get_caller_address()
-#     let (bool) = users_tests.read(caller_address, id_test)
-#     return (bool)
-# end
 
 #
 # Externals
@@ -332,30 +318,20 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
         return (0)
     end
 
-    # obtain id correct answer
     let (answer_correct) = correct_test_answers.read(id_test, idx)
 
-    # obtain question
-    # let (question : Question) = questions.read(id_test, idx)
-    # obtain the correct answer
-    # let (correct_answer) = _get_answer_for_id(question, answer_correct)
-    
     tempvar answer_user : felt
     answer_user = cast([arr], felt)
 
-    # save answer the user
     let (caller_address) = get_caller_address()
     answer_users_test.write(caller_address, id_test, idx, answer_user)
 
     local t
-    # assert answer_user = 44
-    # assert correct_answer = 44
     if answer_user == answer_correct:
         t = 5
     else:
         t = 0
     end
-    # assert t = 5
     let (local total) = _recurse_add_answers(id_test, len - 1, arr + 1, idx + 1)
     let res = t + total
     return (res)
