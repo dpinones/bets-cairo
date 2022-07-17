@@ -63,6 +63,10 @@ func count_users_test(id_test : felt) -> (count_users : felt):
 end
 
 @storage_var
+func users_test(id_test : felt, id_answer : felt) -> (user : felt):
+end
+
+@storage_var
 func check_users_test(user_address : felt, id_test : felt) -> (bool : felt):
 end
 
@@ -171,6 +175,19 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 end
 
 @view
+func view_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt
+) -> (records_len : felt, records : (felt, felt)*):
+    alloc_locals
+
+    let (records : (felt, felt)*) = alloc()
+    let (count) = count_users_test.read(id_test)
+    _recurse_view_answers_records(id_test, count, records, 0)
+
+    return (count, records)
+end
+
+@view
 func view_count_users_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
 ) -> (count_user : felt):
@@ -212,35 +229,35 @@ func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return (id_test)
 end
 
-# @external
-# func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     id_test : felt,
-#     description : felt,
-#     optionA : felt,
-#     optionB : felt,
-#     optionC : felt,
-#     optionD : felt,
-# ) -> (id_question : felt):
+@external
+func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt,
+    description : felt,
+    optionA : felt,
+    optionB : felt,
+    optionC : felt,
+    optionD : felt,
+) -> (id_question : felt):
     
-#     assert_only_owner(id_test)
-#     test_open(id_test)
+    assert_only_owner(id_test)
+    test_open(id_test)
 
-#     let (id_question) = questions_count.read(id_test)
-#     questions.write(
-#         id_test,
-#         id_question,
-#         Question(
-#         description,
-#         optionA,
-#         optionB,
-#         optionC,
-#         optionD
-#         ),
-#     )
-#     questions_count.write(id_test, id_question + 1)
+    let (id_question) = questions_count.read(id_test)
+    questions.write(
+        id_test,
+        id_question,
+        Question(
+        description,
+        optionA,
+        optionB,
+        optionC,
+        optionD
+        ),
+    )
+    questions_count.write(id_test, id_question + 1)
 
-#     return (id_question)
-# end
+    return (id_question)
+end
 
 @external
 func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -300,6 +317,7 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     check_users_test.write(caller_address, id_test, TRUE)
     
     let (count_users) = count_users_test.read(id_test)
+    users_test.write(id_test, count_users, caller_address)
     count_users_test.write(id_test, count_users + 1)
 
     return ()
@@ -331,6 +349,21 @@ func _recurse_view_solution_records{
     return ()
 end
 
+
+func _recurse_view_answers_records{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(id_test : felt, len : felt, arr : (felt, felt)*, idx : felt) -> ():
+    if idx == len:
+        return ()
+    end
+
+    let (user: felt) = users_test.read(id_test, idx)
+    let (point) = points_users_test.read(user, id_test)
+    assert arr[idx] = (user, point)
+
+    _recurse_view_answers_records(id_test, len, arr, idx + 1)
+    return ()
+end
 func _recurse_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, len : felt, arr : felt*, idx : felt
 ) -> ():
