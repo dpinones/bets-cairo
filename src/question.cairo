@@ -235,6 +235,55 @@ func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 end
 
 @external
+func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt,
+    dquestions_len: felt,
+    dquestions : Question*
+) -> ():
+    
+    assert_only_owner(id_test)
+    test_open(id_test)
+
+    _add_a_questions(id_test, 0, dquestions_len, dquestions)
+
+    questions_count.write(id_test, dquestions_len)
+
+    return ()
+end
+
+func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt,
+    id_question : felt,
+    dquestions_len: felt,
+    dquestions : Question*
+) -> ():
+    if dquestions_len == 0:
+        return ()
+    end
+
+    let description = [dquestions].description
+    let optionA = [dquestions].optionA
+    let optionB = [dquestions].optionB
+    let optionC = [dquestions].optionC
+    let optionD = [dquestions].optionD
+
+    questions.write(
+        id_test,
+        id_question,
+        Question(
+        description,
+        optionA,
+        optionB,
+        optionC,
+        optionD
+        )
+    )
+
+    _add_a_questions(id_test, id_question + 1, dquestions_len - 1, dquestions + Question.SIZE)
+    return ()
+end
+
+@external
 func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, answers_len : felt, answers : felt*
 ) -> ():
