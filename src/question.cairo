@@ -219,16 +219,6 @@ func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 end
 
 @external
-func ready_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
-) -> ():
-    assert_only_owner(id_test)
-    let (t : Test) = tests.read(id_test)
-    tests.write(id_test, Test(t.name, t.created_at, FALSE))
-    return ()
-end
-
-@external
 func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt,
     description : felt,
@@ -268,6 +258,8 @@ func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     let (count_question) = questions_count.read(id_test)
     _recurse_add_correct_answer(id_test, count_question, answers, 0)
 
+    let (t : Test) = tests.read(id_test)
+    tests.write(id_test, Test(t.name, t.created_at, FALSE))
 
     return ()
 end
