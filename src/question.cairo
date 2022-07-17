@@ -4,6 +4,14 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.math import (
+    assert_not_zero,
+    assert_not_equal,
+    assert_nn,
+    assert_le,
+    assert_lt,
+    assert_in_range,
+)
 
 #
 # Events
@@ -136,7 +144,7 @@ end
 @view
 func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
-) -> (bet_count : felt):
+) -> (question_count : felt):
     let (count) = questions_count.read(id_test)
     return (count)
 end
@@ -204,35 +212,35 @@ func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return (id_test)
 end
 
-@external
-func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    description : felt,
-    optionA : felt,
-    optionB : felt,
-    optionC : felt,
-    optionD : felt,
-) -> (id_question : felt):
+# @external
+# func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     id_test : felt,
+#     description : felt,
+#     optionA : felt,
+#     optionB : felt,
+#     optionC : felt,
+#     optionD : felt,
+# ) -> (id_question : felt):
     
-    assert_only_owner(id_test)
-    test_open(id_test)
+#     assert_only_owner(id_test)
+#     test_open(id_test)
 
-    let (id_question) = questions_count.read(id_test)
-    questions.write(
-        id_test,
-        id_question,
-        Question(
-        description,
-        optionA,
-        optionB,
-        optionC,
-        optionD
-        ),
-    )
-    questions_count.write(id_test, id_question + 1)
+#     let (id_question) = questions_count.read(id_test)
+#     questions.write(
+#         id_test,
+#         id_question,
+#         Question(
+#         description,
+#         optionA,
+#         optionB,
+#         optionC,
+#         optionD
+#         ),
+#     )
+#     questions_count.write(id_test, id_question + 1)
 
-    return (id_question)
-end
+#     return (id_question)
+# end
 
 @external
 func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -240,7 +248,10 @@ func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     dquestions_len: felt,
     dquestions : Question*
 ) -> ():
-    
+
+    #len > 0
+    assert_le(0, dquestions_len)
+
     assert_only_owner(id_test)
     test_open(id_test)
 
@@ -251,42 +262,14 @@ func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     return ()
 end
 
-func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    id_question : felt,
-    dquestions_len: felt,
-    dquestions : Question*
-) -> ():
-    if dquestions_len == 0:
-        return ()
-    end
-
-    let description = [dquestions].description
-    let optionA = [dquestions].optionA
-    let optionB = [dquestions].optionB
-    let optionC = [dquestions].optionC
-    let optionD = [dquestions].optionD
-
-    questions.write(
-        id_test,
-        id_question,
-        Question(
-        description,
-        optionA,
-        optionB,
-        optionC,
-        optionD
-        )
-    )
-
-    _add_a_questions(id_test, id_question + 1, dquestions_len - 1, dquestions + Question.SIZE)
-    return ()
-end
-
 @external
 func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, answers_len : felt, answers : felt*
 ) -> ():
+    #len > 0
+    assert_le(0, answers_len)
+
+
     assert_only_owner(id_test)
     test_open(id_test)
 
@@ -299,10 +282,12 @@ func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
     return ()
 end
 
-@view
+@external
 func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, answers_len : felt, answers : felt*
 ) -> ():
+    # len > 0
+    assert_le(0, answers_len)
 
     test_closed(id_test)
 
@@ -353,6 +338,8 @@ func _recurse_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         return ()
     end
 
+    # 0 >= answer <= 3
+    assert_in_range(arr[idx], 0, 4)
     correct_test_answers.write(id_test, idx, arr[idx])
 
     _recurse_add_correct_answer(id_test, len, arr, idx + 1)
@@ -371,7 +358,8 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
 
     tempvar answer_user : felt
     answer_user = cast([arr], felt)
-
+    # 0 >= answer <= 3
+    assert_in_range(answer_user, 0, 4)
     let (caller_address) = get_caller_address()
     answer_users_test.write(caller_address, id_test, idx, answer_user)
 
@@ -403,4 +391,36 @@ func _get_answer_for_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_
         answer_user = question.optionD
     end
     return (answer_user)
+end
+
+func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt,
+    id_question : felt,
+    dquestions_len: felt,
+    dquestions : Question*
+) -> ():
+    if dquestions_len == 0:
+        return ()
+    end
+
+    let description = [dquestions].description
+    let optionA = [dquestions].optionA
+    let optionB = [dquestions].optionB
+    let optionC = [dquestions].optionC
+    let optionD = [dquestions].optionD
+
+    questions.write(
+        id_test,
+        id_question,
+        Question(
+        description,
+        optionA,
+        optionB,
+        optionC,
+        optionD
+        )
+    )
+
+    _add_a_questions(id_test, id_question + 1, dquestions_len - 1, dquestions + Question.SIZE)
+    return ()
 end
