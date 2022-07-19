@@ -173,10 +173,10 @@ end
 @view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
-) -> (records_len : felt, records : Question*):
+) -> (records_len : felt, records : QuestionDto*):
     alloc_locals
 
-    let (records : Question*) = alloc()
+    let (records : QuestionDto*) = alloc()
     let (count_question) = questions_count.read(id_test)
     _recurse_view_solution_records(id_test, count_question, records, 0)
 
@@ -349,13 +349,13 @@ end
 
 func _recurse_view_solution_records{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(id_test : felt, len : felt, arr : Question*, idx : felt) -> ():
+}(id_test : felt, len : felt, arr : QuestionDto*, idx : felt) -> ():
     if idx == len:
         return ()
     end
 
     let (record : Question) = questions.read(id_test, idx)
-    assert arr[idx] = record
+    assert arr[idx] = QuestionDto(record.description, record.optionA, record.optionB, record.optionC, record.optionD)
 
     _recurse_view_solution_records(id_test, len, arr, idx + 1)
     return ()
