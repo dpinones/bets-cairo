@@ -84,11 +84,7 @@ func test_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     
 
     ready_test(test_id)
-    
-    # let (local array : felt*) = alloc()
-    # assert array[0] = 1
-    # add_correct_answer(test_id, 1, array)
-    
+
     let (test1: Test) = view_test(test_id)
     assert test1.open = FALSE
 
@@ -105,10 +101,6 @@ func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     add_questions(test_id, 1, qarray)
 
     ready_test(test_id)
-
-    # let (local array : felt*) = alloc()
-    # assert array[0] = 1
-    # add_correct_answer(test_id, 1, array)
     
     let (local array : felt*) = alloc()
     assert array[0] = 1
@@ -133,11 +125,6 @@ func test_send_answer2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     add_questions(test_id, 3, qarray)
     
     ready_test(test_id)
-    # let (local array : felt*) = alloc()
-    # assert array[0] = 1
-    # assert array[1] = 3
-    # assert array[2] = 2
-    # add_correct_answer(test_id, 3, array)
     
     let (local array : felt*) = alloc()
     assert array[0] = 1
