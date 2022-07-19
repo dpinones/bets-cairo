@@ -11,7 +11,6 @@ from src.question import view_test
 from src.question import view_question_count
 from src.question import view_questions
 from src.question import create_test
-from src.question import add_question
 from src.question import add_questions
 from src.question import add_correct_answer
 from src.question import send_answer
@@ -38,21 +37,6 @@ func test_question_empty{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
 end
 
 @view
-func test_add_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-    let (test_id) = create_test(1)
-    let description = 'DDD'
-    let optionA = 'A'
-    let optionB = 'B'
-    let optionC = 'C'
-    let optionD = 'D'
-
-    let (question_id) = add_question(test_id, description, optionA, optionB, optionC, optionD)
-    let (question_count) = view_question_count(test_id)
-    assert question_count = 1
-    return ()
-end
-
-@view
 func test_add_questions_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
     let (test_id) = create_test(1)
@@ -68,9 +52,14 @@ end
 
 @view
 func test_add_question_correct{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
     let (test_id) = create_test(1)
-    let (question_id) = add_question(test_id, 00, 11, 22, 33, 44)
-    let (question: Question) = view_question(test_id, question_id)
+
+    let (local qarray: Question*) = alloc() 
+    assert qarray[0] = Question(00,11, 22, 33, 44)
+    add_questions(test_id, 1, qarray)
+
+    let (question: Question) = view_question(test_id, 0)
     assert question.description = 00
     assert question.optionA = 11
     assert question.optionB = 22
@@ -84,7 +73,9 @@ func test_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     alloc_locals
     
     let (test_id) = create_test(1)
-    let (question_id) = add_question(test_id, 00, 11, 22, 33, 44)
+    let (local qarray: Question*) = alloc() 
+    assert qarray[0] = Question(00,11, 22, 33, 44)
+    add_questions(test_id, 1, qarray)
     
     let (test: Test) = view_test(test_id)
     assert test.open = TRUE
@@ -104,13 +95,10 @@ func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     alloc_locals
 
     let (test_id) = create_test(1)
-    let description = 'DDD'
-    let optionA = 'A'
-    let optionB = 'B'
-    let optionC = 'C'
-    let optionD = 'D'
+    let (local qarray: Question*) = alloc() 
+    assert qarray[0] = Question(00,11, 22, 33, 44)
+    add_questions(test_id, 1, qarray)
 
-    let (question_id) = add_question(test_id, description, optionA, optionB, optionC, optionD)
     let (local array : felt*) = alloc()
     assert array[0] = 1
     add_correct_answer(test_id, 1, array)

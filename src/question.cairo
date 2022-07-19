@@ -221,42 +221,35 @@ end
 func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     name : felt
 ) -> (id_test : felt):
-
-    let (id_test) = tests_count.read()
-    let (caller_address) = get_caller_address()
-    tests.write(id_test, Test(name, caller_address, TRUE))
-    tests_count.write(id_test + 1)
+    let (id_test) = _create_test(name)
     return (id_test)
 end
 
 @external
-func add_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    description : felt,
-    optionA : felt,
-    optionB : felt,
-    optionC : felt,
-    optionD : felt,
-) -> (id_question : felt):
-    
-    assert_only_owner(id_test)
-    test_open(id_test)
+func create_test_and_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    name : felt,
+    dquestions_len : felt,
+    dquestions : Question*,
+    open : felt
+) -> (id : felt):
+    #create test
+    alloc_locals
+    let (local id_test) = _create_test(name)
 
-    let (id_question) = questions_count.read(id_test)
-    questions.write(
-        id_test,
-        id_question,
-        Question(
-        description,
-        optionA,
-        optionB,
-        optionC,
-        optionD
-        ),
-    )
-    questions_count.write(id_test, id_question + 1)
+    #add questions
+    _add_questions(id_test, dquestions_len, dquestions)
+    if open == FALSE:
+        _ready_test(id_test)
+    end
+    return (id_test)
+end
 
-    return (id_question)
+@external
+func ready_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt
+) -> ():
+    _ready_test(id_test)
+    return ()
 end
 
 @external
@@ -265,17 +258,7 @@ func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     dquestions_len: felt,
     dquestions : Question*
 ) -> ():
-
-    #len > 0
-    assert_le(0, dquestions_len)
-
-    assert_only_owner(id_test)
-    test_open(id_test)
-
-    _add_a_questions(id_test, 0, dquestions_len, dquestions)
-
-    questions_count.write(id_test, dquestions_len)
-
+    _add_questions(id_test, dquestions_len, dquestions)
     return ()
 end
 
@@ -334,6 +317,46 @@ end
 #
 # Internal
 #
+
+func _create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    name : felt
+) -> (id_test : felt):
+
+    let (id_test) = tests_count.read()
+    let (caller_address) = get_caller_address()
+    tests.write(id_test, Test(name, caller_address, TRUE))
+    tests_count.write(id_test + 1)
+    return (id_test)
+end
+
+func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt,
+    dquestions_len: felt,
+    dquestions : Question*
+) -> ():
+    alloc_locals
+    #len > 0
+    assert_le(0, dquestions_len)
+
+    assert_only_owner(id_test)
+    test_open(id_test)
+
+    let (count_question) = questions_count.read(id_test)
+    _add_a_questions(id_test, count_question, dquestions_len, dquestions)
+
+    questions_count.write(id_test, count_question + dquestions_len)
+
+    return ()
+end
+
+func _ready_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt
+) -> ():
+    assert_only_owner(id_test)
+    let (t : Test) = tests.read(id_test)
+    tests.write(id_test, Test(t.name, t.created_at, FALSE))
+    return ()
+end
 
 func _recurse_view_solution_records{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
