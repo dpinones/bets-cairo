@@ -33,6 +33,15 @@ struct Question:
     member optionB : felt
     member optionC : felt
     member optionD : felt
+    member optionCorrect : felt
+end
+
+struct QuestionDto:
+    member description : felt
+    member optionA : felt
+    member optionB : felt
+    member optionC : felt
+    member optionD : felt
 end
 
 #
@@ -262,25 +271,25 @@ func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     return ()
 end
 
-@external
-func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt, answers_len : felt, answers : felt*
-) -> ():
-    #len > 0
-    assert_le(0, answers_len)
+# @external
+# func add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     id_test : felt, answers_len : felt, answers : felt*
+# ) -> ():
+#     #len > 0
+#     assert_le(0, answers_len)
 
 
-    assert_only_owner(id_test)
-    test_open(id_test)
+#     assert_only_owner(id_test)
+#     test_open(id_test)
 
-    let (count_question) = questions_count.read(id_test)
-    _recurse_add_correct_answer(id_test, count_question, answers, 0)
+#     let (count_question) = questions_count.read(id_test)
+#     _recurse_add_correct_answer(id_test, count_question, answers, 0)
 
-    let (t : Test) = tests.read(id_test)
-    tests.write(id_test, Test(t.name, t.created_at, FALSE))
+#     let (t : Test) = tests.read(id_test)
+#     tests.write(id_test, Test(t.name, t.created_at, FALSE))
 
-    return ()
-end
+#     return ()
+# end
 
 @external
 func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
@@ -387,20 +396,21 @@ func _recurse_view_answers_records{
     _recurse_view_answers_records(id_test, len, arr, idx + 1)
     return ()
 end
-func _recurse_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt, len : felt, arr : felt*, idx : felt
-) -> ():
-    if idx == len:
-        return ()
-    end
 
-    # 0 >= answer <= 3
-    assert_in_range(arr[idx], 0, 4)
-    correct_test_answers.write(id_test, idx, arr[idx])
+# func _recurse_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     id_test : felt, len : felt, arr : felt*, idx : felt
+# ) -> ():
+#     if idx == len:
+#         return ()
+#     end
 
-    _recurse_add_correct_answer(id_test, len, arr, idx + 1)
-    return ()
-end
+#     # 0 >= answer <= 3
+#     assert_in_range(arr[idx], 0, 4)
+#     correct_test_answers.write(id_test, idx, arr[idx])
+
+#     _recurse_add_correct_answer(id_test, len, arr, idx + 1)
+#     return ()
+# end
 
 func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, len : felt, arr : felt*, idx : felt
@@ -464,6 +474,11 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let optionB = [dquestions].optionB
     let optionC = [dquestions].optionC
     let optionD = [dquestions].optionD
+    let optionCorrect = [dquestions].optionCorrect
+
+    # hacer la magia aca
+    assert_in_range(optionCorrect, 0, 4)
+    correct_test_answers.write(id_test, id_question, optionCorrect)
 
     questions.write(
         id_test,
@@ -473,7 +488,8 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         optionA,
         optionB,
         optionC,
-        optionD
+        optionD,
+        optionCorrect
         )
     )
 
