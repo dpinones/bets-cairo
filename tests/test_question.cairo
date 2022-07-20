@@ -5,6 +5,7 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.alloc import alloc
 
 from src.question import Question
+from src.question import QuestionDto
 from src.question import Test
 from src.question import view_test_count
 from src.question import view_test
@@ -15,6 +16,7 @@ from src.question import add_questions
 from src.question import send_answer
 from src.question import _get_answer_for_id
 from src.question import view_question
+from src.question import view_question_owner
 from src.question import view_count_users_test
 from src.question import view_user_test
 from src.question import view_points_user_test
@@ -59,7 +61,7 @@ func test_add_question_correct{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     assert qarray[0] = Question(00,11, 22, 33, 44, 1)
     add_questions(test_id, 1, qarray)
 
-    let (question: Question) = view_question(test_id, 0)
+    let (question: Question) = view_question_owner(test_id, 0)
     assert question.description = 00
     assert question.optionA = 11
     assert question.optionB = 22

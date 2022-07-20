@@ -165,7 +165,17 @@ end
 @view
 func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, id_question : felt
+) -> (question : QuestionDto):
+    let (record : Question) = questions.read(id_test, id_question)
+    let res : QuestionDto = QuestionDto(record.description, record.optionA, record.optionB, record.optionC, record.optionD)
+    return (res)
+end
+
+@view
+func view_question_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt, id_question : felt
 ) -> (question : Question):
+    assert_only_owner(id_test)
     let (question : Question) = questions.read(id_test, id_question)
     return (question)
 end
