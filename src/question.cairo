@@ -105,6 +105,7 @@ func assert_only_owner{
     let (t : Test) = tests.read(id_test)
     let (caller) = get_caller_address()
     with_attr error_message("Ownable: caller is not the owner"):
+        # assert_not_zero(caller)
         assert t.created_at = caller
     end
     return ()
@@ -216,19 +217,23 @@ end
 
 @view
 func view_user_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
+    id_test : felt,
+    user : felt
 ) -> (bool : felt):
-    let (caller_address) = get_caller_address()
-    let (bool) = check_users_test.read(caller_address, id_test)
+    # let (caller_address) = get_caller_address()
+    # let (bool) = check_users_test.read(caller_address, id_test)
+    let (bool) = check_users_test.read(user, id_test)
     return (bool)
 end
 
 @view
 func view_points_user_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
+    id_test : felt,
+    user : felt
 ) -> (points : felt):
-    let (caller_address) = get_caller_address()
-    let (points) = points_users_test.read(caller_address, id_test)
+    # let (caller_address) = get_caller_address()
+    # let (points) = points_users_test.read(caller_address, id_test)
+    let (points) = points_users_test.read(user, id_test)
     return (points)
 end
 

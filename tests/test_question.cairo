@@ -108,7 +108,8 @@ func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     assert array[0] = 1
     send_answer(test_id, 1, array)
 
-    let (points) = view_points_user_test(test_id)
+    let (caller_address) = get_caller_address()
+    let (points) = view_points_user_test(caller_address, test_id)
     assert points = 5
     
     return ()
@@ -134,7 +135,8 @@ func test_send_answer2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     assert array[2] = 1
     send_answer(test_id, 3, array)
 
-    let (points) = view_points_user_test(test_id)
+    let (caller_address) = get_caller_address()
+    let (points) = view_points_user_test(caller_address, test_id)
     assert points = 5
     
     return ()
