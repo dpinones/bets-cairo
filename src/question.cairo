@@ -17,6 +17,14 @@ from starkware.cairo.common.math import (
 # Events
 #
 
+@event
+func TestCreated(id_test: felt):
+end
+
+@event
+func SendPoint(id_test : felt, point: felt):
+end
+
 #
 # Struct
 #
@@ -24,7 +32,6 @@ from starkware.cairo.common.math import (
 struct Test:
     member name : felt
     member created_at : felt
-    member open : felt
 end
 
 struct Question:
@@ -47,42 +54,59 @@ end
 #
 # Storage
 #
+
+### TEST ###
+
+#lista de test
 @storage_var
 func tests(id_test : felt) -> (test : Test):
 end
 
+#cantidad de test
 @storage_var
 func tests_count() -> (count : felt):
 end
 
+### QUESTION ###
+
+#lista de preguntas
 @storage_var
 func questions(id_test : felt, id_question : felt) -> (question : Question):
 end
 
+#cantidad de preguntas por test
 @storage_var
 func questions_count(id_test : felt) -> (questions_count : felt):
 end
 
+#respuestas correctas por test / de uso interno
 @storage_var
 func correct_test_answers(id_test : felt, id_question : felt) -> (correct_test_answer: felt):
 end
 
-@storage_var
-func count_users_test(id_test : felt) -> (count_users : felt):
-end
+### USERS ###
 
+# respuesta nro por test / forma de obtener la lista de usuarios por test
 @storage_var
 func users_test(id_test : felt, id_answer : felt) -> (user : felt):
 end
 
+#cantidad de usuarios por test
+@storage_var
+func count_users_test(id_test : felt) -> (count_users : felt):
+end
+
+#usuarios que hicieron el test / boolean
 @storage_var
 func check_users_test(user_address : felt, id_test : felt) -> (bool : felt):
 end
 
+#puntos de un usuario por test
 @storage_var
 func points_users_test(user_address : felt, id_test : felt) -> (points : felt):
 end
 
+#respuestas de un usuario por test
 @storage_var
 func answer_users_test(user_address : felt, id_test : felt, id_question : felt) -> (
     answer : felt
@@ -90,50 +114,8 @@ func answer_users_test(user_address : felt, id_test : felt, id_question : felt) 
 end
 
 #
-# Initializer
-#
-
-#
 # Modifier
 #
-
-func assert_only_owner{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-}(id_test: felt):
-    let (t : Test) = tests.read(id_test)
-    let (caller) = get_caller_address()
-    with_attr error_message("Ownable: caller is not the owner"):
-        # assert_not_zero(caller)
-        assert t.created_at = caller
-    end
-    return ()
-end
-
-func test_open{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-}(id_test: felt):
-    let (t : Test) = tests.read(id_test)
-    with_attr error_message("Test: is closed"):
-        assert t.open = TRUE
-    end
-    return ()
-end
-
-func test_closed{
-    syscall_ptr : felt*,
-    pedersen_ptr : HashBuiltin*,
-    range_check_ptr
-}(id_test: felt):
-    let (t : Test) = tests.read(id_test)
-    with_attr error_message("Test: is open"):
-        assert t.open = FALSE
-    end
-    return ()
-end
 
 #
 # Getters
@@ -156,32 +138,6 @@ func view_test_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 end
 
 @view
-func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
-) -> (question_count : felt):
-    let (count) = questions_count.read(id_test)
-    return (count)
-end
-
-@view
-func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt, id_question : felt
-) -> (question : QuestionDto):
-    let (record : Question) = questions.read(id_test, id_question)
-    let res : QuestionDto = QuestionDto(record.description, record.optionA, record.optionB, record.optionC, record.optionD)
-    return (res)
-end
-
-@view
-func view_question_owner{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt, id_question : felt
-) -> (question : Question):
-    assert_only_owner(id_test)
-    let (question : Question) = questions.read(id_test, id_question)
-    return (question)
-end
-
-@view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
 ) -> (records_len : felt, records : QuestionDto*):
@@ -195,7 +151,24 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 end
 
 @view
-func view_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt
+) -> (question_count : felt):
+    let (count) = questions_count.read(id_test)
+    return (count)
+end
+
+@view
+func view_users_test_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_test : felt
+) -> (count_user : felt):
+
+    let (count) = count_users_test.read(id_test)
+    return (count)
+end
+
+@view
+func view_score_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
 ) -> (records_len : felt, records : (felt, felt)*):
     alloc_locals
@@ -207,82 +180,23 @@ func view_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     return (count, records)
 end
 
-@view
-func view_count_users_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
-) -> (count_user : felt):
-    let (count) = count_users_test.read(id_test)
-    return (count)
-end
-
-@view
-func view_user_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    user : felt
-) -> (bool : felt):
-    # let (caller_address) = get_caller_address()
-    # let (bool) = check_users_test.read(caller_address, id_test)
-    let (bool) = check_users_test.read(user, id_test)
-    return (bool)
-end
-
-@view
-func view_points_user_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    user : felt
-) -> (points : felt):
-    # let (caller_address) = get_caller_address()
-    # let (points) = points_users_test.read(caller_address, id_test)
-    let (points) = points_users_test.read(user, id_test)
-    return (points)
-end
-
 #
 # Externals
 #
 
 @external
 func create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt
-) -> (id_test : felt):
-    let (id_test) = _create_test(name)
-    return (id_test)
-end
-
-@external
-func create_test_and_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     name : felt,
     dquestions_len : felt,
-    dquestions : Question*,
-    open : felt
-) -> (id : felt):
+    dquestions : Question*
+) -> ():
     #create test
     alloc_locals
     let (local id_test) = _create_test(name)
 
     #add questions
     _add_questions(id_test, dquestions_len, dquestions)
-    if open == FALSE:
-        _ready_test(id_test)
-    end
-    return (id_test)
-end
-
-@external
-func ready_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
-) -> ():
-    _ready_test(id_test)
-    return ()
-end
-
-@external
-func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt,
-    dquestions_len: felt,
-    dquestions : Question*
-) -> ():
-    _add_questions(id_test, dquestions_len, dquestions)
+    TestCreated.emit(id_test)
     return ()
 end
 
@@ -290,16 +204,26 @@ end
 func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt, answers_len : felt, answers : felt*
 ) -> ():
-    # len > 0
-    assert_le(0, answers_len)
+    alloc_locals
 
-    test_closed(id_test)
+    let (count) = tests_count.read()
+    with_attr error_message("Test not found"):
+        assert_in_range(id_test + 1 , 0, count +1)
+    end
 
     let (count_question) = questions_count.read(id_test)
+    with_attr error_message("Length of answers must be equal to the number of questions"):
+        assert answers_len = count_question
+    end
+
+    let (caller_address) = get_caller_address()
+    let (bool) = check_users_test.read(caller_address, id_test)
+    with_attr error_message("You have already answered this test"):
+        assert bool = FALSE
+    end
+    
     let (point) = _recurse_add_answers(id_test, count_question, answers, 0)
 
-    
-    let (caller_address) = get_caller_address()
     points_users_test.write(caller_address, id_test, point)
     check_users_test.write(caller_address, id_test, TRUE)
     
@@ -307,16 +231,9 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     users_test.write(id_test, count_users, caller_address)
     count_users_test.write(id_test, count_users + 1)
 
+    SendPoint.emit(id_test, point) 
     return ()
 end
-
-#
-# Unprotected
-#
-
-#
-# Public
-#
 
 #
 # Internal
@@ -328,7 +245,7 @@ func _create_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 
     let (id_test) = tests_count.read()
     let (caller_address) = get_caller_address()
-    tests.write(id_test, Test(name, caller_address, TRUE))
+    tests.write(id_test, Test(name, caller_address))
     tests_count.write(id_test + 1)
     return (id_test)
 end
@@ -342,23 +259,11 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     #len > 0
     assert_le(0, dquestions_len)
 
-    assert_only_owner(id_test)
-    test_open(id_test)
-
     let (count_question) = questions_count.read(id_test)
     _add_a_questions(id_test, count_question, dquestions_len, dquestions)
 
     questions_count.write(id_test, count_question + dquestions_len)
 
-    return ()
-end
-
-func _ready_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_test : felt
-) -> ():
-    assert_only_owner(id_test)
-    let (t : Test) = tests.read(id_test)
-    tests.write(id_test, Test(t.name, t.created_at, FALSE))
     return ()
 end
 
@@ -455,8 +360,11 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let optionC = [dquestions].optionC
     let optionD = [dquestions].optionD
     let optionCorrect = [dquestions].optionCorrect
+    
+    with_attr error_message("Option correct must be between 0 and 3"):
+        assert_in_range(optionCorrect, 0, 4)
+    end
 
-    assert_in_range(optionCorrect, 0, 4)
     correct_test_answers.write(id_test, id_question, optionCorrect)
 
     questions.write(
