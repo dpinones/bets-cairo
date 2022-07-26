@@ -51,6 +51,11 @@ struct QuestionDto:
     member optionD : felt
 end
 
+struct Row:
+    member user : felt
+    member score : felt
+end
+
 #
 # Storage
 #
@@ -170,10 +175,11 @@ end
 @view
 func view_score_test{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_test : felt
-) -> (records_len : felt, records : (felt, felt)*):
+) -> (records_len : felt, records : Row*):
     alloc_locals
 
-    let (records : (felt, felt)*) = alloc()
+    # let (records : (felt, felt)*) = alloc()
+    let (records : Row*) = alloc()
     let (count) = count_users_test.read(id_test)
     _recurse_view_answers_records(id_test, count, records, 0)
 
@@ -284,14 +290,14 @@ end
 
 func _recurse_view_answers_records{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(id_test : felt, len : felt, arr : (felt, felt)*, idx : felt) -> ():
+}(id_test : felt, len : felt, arr : Row*, idx : felt) -> ():
     if idx == len:
         return ()
     end
 
     let (user: felt) = users_test.read(id_test, idx)
     let (point) = points_users_test.read(user, id_test)
-    assert arr[idx] = (user, point)
+    assert arr[idx] = Row(user, point)
 
     _recurse_view_answers_records(id_test, len, arr, idx + 1)
     return ()

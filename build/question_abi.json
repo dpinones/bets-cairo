@@ -51,6 +51,23 @@
     {
         "members": [
             {
+                "name": "user",
+                "offset": 0,
+                "type": "felt"
+            },
+            {
+                "name": "score",
+                "offset": 1,
+                "type": "felt"
+            }
+        ],
+        "name": "Row",
+        "size": 2,
+        "type": "struct"
+    },
+    {
+        "members": [
+            {
                 "name": "description",
                 "offset": 0,
                 "type": "felt"
@@ -210,7 +227,7 @@
             },
             {
                 "name": "records",
-                "type": "(felt, felt)*"
+                "type": "Row*"
             }
         ],
         "stateMutability": "view",

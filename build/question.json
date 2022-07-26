@@ -52,6 +52,23 @@
         {
             "members": [
                 {
+                    "name": "user",
+                    "offset": 0,
+                    "type": "felt"
+                },
+                {
+                    "name": "score",
+                    "offset": 1,
+                    "type": "felt"
+                }
+            ],
+            "name": "Row",
+            "size": 2,
+            "type": "struct"
+        },
+        {
+            "members": [
+                {
                     "name": "description",
                     "offset": 0,
                     "type": "felt"
@@ -211,7 +228,7 @@
                 },
                 {
                     "name": "records",
-                    "type": "(felt, felt)*"
+                    "type": "Row*"
                 }
             ],
             "stateMutability": "view",
@@ -2364,6 +2381,21 @@
                 "size": 5,
                 "type": "struct"
             },
+            "__main__.Row": {
+                "full_name": "__main__.Row",
+                "members": {
+                    "score": {
+                        "cairo_type": "felt",
+                        "offset": 1
+                    },
+                    "user": {
+                        "cairo_type": "felt",
+                        "offset": 0
+                    }
+                },
+                "size": 2,
+                "type": "struct"
+            },
             "__main__.SendPoint": {
                 "type": "namespace"
             },
@@ -4289,7 +4321,7 @@
                 "full_name": "__main__._recurse_view_answers_records.Args",
                 "members": {
                     "arr": {
-                        "cairo_type": "(felt, felt)*",
+                        "cairo_type": "__main__.Row*",
                         "offset": 2
                     },
                     "id_test": {
@@ -4426,7 +4458,7 @@
                 "type": "reference"
             },
             "__main__._recurse_view_answers_records.arr": {
-                "cairo_type": "(felt, felt)*",
+                "cairo_type": "__main__.Row*",
                 "full_name": "__main__._recurse_view_answers_records.arr",
                 "references": [
                     {
@@ -4435,7 +4467,7 @@
                             "offset": 0
                         },
                         "pc": 1226,
-                        "value": "[cast(fp + (-4), (felt, felt)**)]"
+                        "value": "[cast(fp + (-4), __main__.Row**)]"
                     }
                 ],
                 "type": "reference"
@@ -12175,7 +12207,7 @@
                 "type": "struct"
             },
             "__main__.view_score_test.Return": {
-                "cairo_type": "(records_len : felt, records : (felt, felt)*)",
+                "cairo_type": "(records_len : felt, records : __main__.Row*)",
                 "type": "type_definition"
             },
             "__main__.view_score_test.SIZEOF_LOCALS": {
@@ -12315,7 +12347,7 @@
                 "type": "reference"
             },
             "__main__.view_score_test.records": {
-                "cairo_type": "(felt, felt)*",
+                "cairo_type": "__main__.Row*",
                 "full_name": "__main__.view_score_test.records",
                 "references": [
                     {
@@ -12324,7 +12356,7 @@
                             "offset": 5
                         },
                         "pc": 887,
-                        "value": "[cast(ap + (-1), (felt, felt)**)]"
+                        "value": "[cast(ap + (-1), __main__.Row**)]"
                     },
                     {
                         "ap_tracking_data": {
@@ -12332,7 +12364,7 @@
                             "offset": 5
                         },
                         "pc": 888,
-                        "value": "[cast(fp, (felt, felt)**)]"
+                        "value": "[cast(fp, __main__.Row**)]"
                     }
                 ],
                 "type": "reference"
@@ -14381,7 +14413,7 @@
                 "type": "reference"
             },
             "__wrappers__.view_score_test.ret_value": {
-                "cairo_type": "(records_len : felt, records : (felt, felt)*)",
+                "cairo_type": "(records_len : felt, records : __main__.Row*)",
                 "full_name": "__wrappers__.view_score_test.ret_value",
                 "references": [
                     {
@@ -14390,7 +14422,7 @@
                             "offset": 0
                         },
                         "pc": 941,
-                        "value": "[cast(ap + (-2), (records_len : felt, records : (felt, felt)*)*)]"
+                        "value": "[cast(ap + (-2), (records_len : felt, records : __main__.Row*)*)]"
                     }
                 ],
                 "type": "reference"
@@ -14469,7 +14501,7 @@
                         "offset": 2
                     },
                     "ret_value": {
-                        "cairo_type": "(records_len : felt, records : (felt, felt)*)",
+                        "cairo_type": "(records_len : felt, records : __main__.Row*)",
                         "offset": 0
                     }
                 },
@@ -14609,7 +14641,7 @@
                 "type": "reference"
             },
             "__wrappers__.view_score_test_encode_return.ret_value": {
-                "cairo_type": "(records_len : felt, records : (felt, felt)*)",
+                "cairo_type": "(records_len : felt, records : __main__.Row*)",
                 "full_name": "__wrappers__.view_score_test_encode_return.ret_value",
                 "references": [
                     {
@@ -14618,7 +14650,7 @@
                             "offset": 0
                         },
                         "pc": 908,
-                        "value": "[cast(fp + (-5), (records_len : felt, records : (felt, felt)*)*)]"
+                        "value": "[cast(fp + (-5), (records_len : felt, records : __main__.Row*)*)]"
                     }
                 ],
                 "type": "reference"
@@ -22886,7 +22918,7 @@
                         "offset": 5
                     },
                     "pc": 887,
-                    "value": "[cast(ap + (-1), (felt, felt)**)]"
+                    "value": "[cast(ap + (-1), __main__.Row**)]"
                 },
                 {
                     "ap_tracking_data": {
@@ -22894,7 +22926,7 @@
                         "offset": 5
                     },
                     "pc": 888,
-                    "value": "[cast(fp, (felt, felt)**)]"
+                    "value": "[cast(fp, __main__.Row**)]"
                 },
                 {
                     "ap_tracking_data": {
@@ -22966,7 +22998,7 @@
                         "offset": 0
                     },
                     "pc": 908,
-                    "value": "[cast(fp + (-5), (records_len : felt, records : (felt, felt)*)*)]"
+                    "value": "[cast(fp + (-5), (records_len : felt, records : __main__.Row*)*)]"
                 },
                 {
                     "ap_tracking_data": {
@@ -23134,7 +23166,7 @@
                         "offset": 0
                     },
                     "pc": 941,
-                    "value": "[cast(ap + (-2), (records_len : felt, records : (felt, felt)*)*)]"
+                    "value": "[cast(ap + (-2), (records_len : felt, records : __main__.Row*)*)]"
                 },
                 {
                     "ap_tracking_data": {
@@ -24558,7 +24590,7 @@
                         "offset": 0
                     },
                     "pc": 1226,
-                    "value": "[cast(fp + (-4), (felt, felt)**)]"
+                    "value": "[cast(fp + (-4), __main__.Row**)]"
                 },
                 {
                     "ap_tracking_data": {
