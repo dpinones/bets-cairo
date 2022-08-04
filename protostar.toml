@@ -5,9 +5,6 @@ protostar_version = "0.2.3"
 libs_path = "lib"
 
 ["protostar.contracts"]
-# bet = [
-#     "./src/bet.cairo",
-# ]
-question = [
-    "./src/question.cairo",
+forms = [
+    "./src/forms.cairo",
 ]

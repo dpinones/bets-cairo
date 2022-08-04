@@ -4,23 +4,23 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.alloc import alloc
 
-from src.question import Question
-from src.question import QuestionDto
-from src.question import Test
-from src.question import view_test_count
-from src.question import view_test
-from src.question import view_question_count
-from src.question import view_questions
-from src.question import create_test
-from src.question import add_questions
-from src.question import send_answer
-from src.question import _get_answer_for_id
-from src.question import view_question
-from src.question import view_question_owner
-from src.question import view_count_users_test
-from src.question import view_user_test
-from src.question import view_points_user_test
-from src.question import ready_test
+from src.forms import Question
+from src.forms import QuestionDto
+from src.forms import Test
+from src.forms import view_test_count
+from src.forms import view_test
+from src.forms import view_question_count
+from src.forms import view_questions
+from src.forms import create_test
+from src.forms import add_questions
+from src.forms import send_answer
+from src.forms import _get_answer_for_id
+from src.forms import view_question
+from src.forms import view_question_owner
+from src.forms import view_count_users_test
+from src.forms import view_user_test
+from src.forms import view_points_user_test
+from src.forms import ready_test
 from starkware.starknet.common.syscalls import get_caller_address
 
 @view
