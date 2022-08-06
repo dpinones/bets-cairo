@@ -1,10 +1,16 @@
 ["protostar.config"]
-protostar_version = "0.2.3"
+protostar_version = "0.3.0"
 
 ["protostar.project"]
 libs_path = "lib"
 
 ["protostar.contracts"]
-forms = [
-    "./src/forms.cairo",
+form = [
+    "src/form.cairo",
 ]
+
+[profile.devnet.protostar.deploy]
+gateway-url = "http://127.0.0.1:5050/"
+
+[profile.testnet.protostar.deploy]
+network="alpha-goerli"

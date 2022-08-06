@@ -1,3 +1,0 @@
-[submodule "sphinx"]
-	url = https://github.com/Th0rgal/sphinx
-	path = lib/sphinx

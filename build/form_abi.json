@@ -10,10 +10,15 @@
                 "name": "created_at",
                 "offset": 1,
                 "type": "felt"
+            },
+            {
+                "name": "status",
+                "offset": 2,
+                "type": "felt"
             }
         ],
-        "name": "Test",
-        "size": 2,
+        "name": "Form",
+        "size": 3,
         "type": "struct"
     },
     {
@@ -105,18 +110,18 @@
     {
         "data": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
         "keys": [],
-        "name": "TestCreated",
+        "name": "FormCreated",
         "type": "event"
     },
     {
         "data": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             },
             {
@@ -131,15 +136,15 @@
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
-        "name": "view_test",
+        "name": "view_form",
         "outputs": [
             {
-                "name": "test",
-                "type": "Test"
+                "name": "form",
+                "type": "Form"
             }
         ],
         "stateMutability": "view",
@@ -147,7 +152,7 @@
     },
     {
         "inputs": [],
-        "name": "view_test_count",
+        "name": "view_form_count",
         "outputs": [
             {
                 "name": "count",
@@ -160,7 +165,7 @@
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
@@ -181,7 +186,7 @@
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
@@ -198,11 +203,11 @@
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
-        "name": "view_users_test_count",
+        "name": "view_users_form_count",
         "outputs": [
             {
                 "name": "count_user",
@@ -215,11 +220,11 @@
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             }
         ],
-        "name": "view_score_test",
+        "name": "view_score_form",
         "outputs": [
             {
                 "name": "records_len",
@@ -238,6 +243,22 @@
             {
                 "name": "name",
                 "type": "felt"
+            }
+        ],
+        "name": "create_form",
+        "outputs": [
+            {
+                "name": "id_form",
+                "type": "felt"
+            }
+        ],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "name",
+                "type": "felt"
             },
             {
                 "name": "dquestions_len",
@@ -246,16 +267,48 @@
             {
                 "name": "dquestions",
                 "type": "Question*"
+            },
+            {
+                "name": "status_open",
+                "type": "felt"
             }
         ],
-        "name": "create_test",
+        "name": "create_form_add_questions",
+        "outputs": [
+            {
+                "name": "id_form",
+                "type": "felt"
+            }
+        ],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "id_form",
+                "type": "felt"
+            },
+            {
+                "name": "dquestions_len",
+                "type": "felt"
+            },
+            {
+                "name": "dquestions",
+                "type": "Question*"
+            },
+            {
+                "name": "status_open",
+                "type": "felt"
+            }
+        ],
+        "name": "add_questions",
         "outputs": [],
         "type": "function"
     },
     {
         "inputs": [
             {
-                "name": "id_test",
+                "name": "id_form",
                 "type": "felt"
             },
             {
