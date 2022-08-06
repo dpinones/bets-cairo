@@ -258,6 +258,15 @@ func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
 end
 
 @external
+func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt
+) -> ():
+    let (form: Form) = forms.read(id_form)
+    _change_status_ready_form(id_form, form.name)
+    return ()
+end
+
+@external
 func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt, answers_len : felt, answers : felt*
 ) -> ():

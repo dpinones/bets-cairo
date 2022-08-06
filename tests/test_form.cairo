@@ -10,6 +10,7 @@ from src.form import view_questions
 from src.form import create_form
 from src.form import create_form_add_questions
 from src.form import add_questions
+from src.form import forms_change_status_ready
 from src.form import send_answer
 from src.form import _get_answer_for_id
 # from src.forms import view_question
@@ -90,6 +91,32 @@ func test_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     
     let (question_count) = view_question_count(id_form)
     assert question_count = 2
+
+    return ()
+end
+
+#form with questions and open status -> ready status
+@view
+func test_forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    
+    alloc_locals
+    let (local array: Question*) = alloc() 
+    assert array[0] = Question(00,11, 22, 33, 44, 1)
+    let (id_form) = create_form_add_questions('starknet', 1, array, 1)
+
+    let (form: Form) = view_form(id_form)
+    assert form.status = STATUS_OPEN
+    
+    let (question_count) = view_question_count(id_form)
+    assert question_count = 1
+    
+    forms_change_status_ready(id_form)
+
+    let (form: Form) = view_form(id_form)
+    assert form.status = STATUS_READY
+    
+    let (question_count) = view_question_count(id_form)
+    assert question_count = 1
 
     return ()
 end
