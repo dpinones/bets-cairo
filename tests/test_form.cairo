@@ -8,12 +8,14 @@ from src.form import view_form
 from src.form import view_question_count
 from src.form import view_questions
 from src.form import view_users_form_count
+from src.form import view_score_form_user
 from src.form import create_form
 from src.form import create_form_add_questions
 from src.form import add_questions
 from src.form import forms_change_status_ready
 from src.form import send_answer
 from src.form import _get_answer_for_id
+from src.form import close_forms
 from src.form import STATUS_OPEN
 from src.form import STATUS_READY
 from src.form import STATUS_CLOSE
@@ -134,6 +136,25 @@ func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let (users_form_count) = view_users_form_count(id_form)
     assert users_form_count = 1
     
+    return ()
+end
+
+#calculate points for form
+@view
+func test_close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local array: Question*) = alloc() 
+    assert array[0] = Question(00,11, 22, 33, 44, 1)
+    let (id_form) = create_form_add_questions('starknet', 1, array, 0)
+    let (local array1 : felt*) = alloc()
+    assert array1[0] = 1
+    send_answer(id_form, 1, array1)
+
+    close_forms(id_form)
+    let (caller_address) = get_caller_address()
+    let (points) = view_score_form_user(caller_address, id_form)
+    assert points = 5
+
     return ()
 end
 

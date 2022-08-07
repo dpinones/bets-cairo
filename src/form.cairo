@@ -195,6 +195,14 @@ func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count, records)
 end
 
+@view
+func view_score_form_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt, user: felt
+) -> (point: felt):
+    let (point) = points_users_form.read(user, id_form)
+    return (point)
+end
+
 #
 # Externals
 #
@@ -306,27 +314,70 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     return ()
 end
 
-    # # mover logica a la funcion cerrar form
+@external
+func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt
+) -> ():
+    #obtengo cantidad de usuarios que hicieron el form
+    let (count_users) = count_users_form.read(id_form)
+    #obtengo cantidad de preguntas por form
+    let (count_question) = questions_count.read(id_form)
+    _close_forms(id_form, count_users, count_question)
 
-    # #obtengo puntos de la respuesta actual
-    # let (point) = _recurse_add_answers(id_form, count_question, answers, 0)
+    # CERRAR EL FORM
+    let (form: Form) = forms.read(id_form)
+    _change_status_close_form(id_form, form.name)
 
-    # # guardo puntos de usuario en form
-    # points_users_form.write(caller_address, id_form, point)
+    return ()
+end
 
-    # # guardo que el usuario ya realizo el form    
-    # check_users_form.write(caller_address, id_form, TRUE)
-    
-    # let (count_users) = count_users_form.read(id_form)
+#calculo los puntos de un formulario
+func _close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt, count_users : felt, count_question
+) -> ():
+    alloc_locals
+    if count_users == 0:
+        return ()
+    end
 
-    # # guardo que usuario hizo tal form
-    # users_form.write(id_form, count_users, caller_address)
+    #obtener el usuario
+    let (user) = users_form.read(id_form, count_users - 1)
+    #obtener los puntos del usuario
+    let (point) = _calculate_score(id_form, count_question, 0, user)
 
-    # #cantidad de usuarios por form
-    # count_users_form.write(id_form, count_users + 1)
+    # guardo puntos de usuario en form
+    points_users_form.write(user, id_form, point)
 
-    # SendPoint.emit(id_form, point) 
-    # return ()
+    _close_forms(id_form, count_users - 1, count_question)
+    return ()
+end
+
+#calcula puntos de un usuario
+func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form: felt, count_answer: felt, idx: felt, caller_address: felt
+) -> (points: felt):
+    alloc_locals
+    if count_answer == 0:
+        return (0)
+    end
+
+    # respuesta correcta 
+    let (answer_correct) = correct_form_answers.read(id_form, idx)
+
+    # respuesta del usuario
+    let (answer_user) = answer_users_form.read(caller_address, id_form, idx)
+
+    # si la respuesta es correcta
+    local t
+    if answer_user == answer_correct:
+        t = 5
+    else:
+        t = 0
+    end
+    let (local total) = _calculate_score(id_form, count_answer - 1, idx + 1, caller_address)
+    let res = t + total
+    return (res)
+end
 
 #
 # Internal
@@ -433,41 +484,6 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1, caller_address)
     return ()
 end
-
-# func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     id_form : felt, len : felt, arr : felt*, idx : felt
-# ) -> (points : felt):
-#     alloc_locals
-#     if len == 0:
-#         return (0)
-#     end
-
-#     # respuesta correcta 
-#     let (answer_correct) = correct_form_answers.read(id_form, idx)
-
-#     # respuesta del usuario
-#     tempvar answer_user : felt
-#     answer_user = cast([arr], felt)
-    
-#     # 0 >= answer <= 3
-#     assert_in_range(answer_user, 0, 4)
-
-#     let (caller_address) = get_caller_address()
-    
-#     # guardo la respuesta del usuario
-#     answer_users_form.write(caller_address, id_form, idx, answer_user)
-
-#     # si la respuesta es correcta
-#     local t
-#     if answer_user == answer_correct:
-#         t = 5
-#     else:
-#         t = 0
-#     end
-#     let (local total) = _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1)
-#     let res = t + total
-#     return (res)
-# end
 
 func _get_answer_for_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     question : Question, id_answer : felt
