@@ -159,7 +159,7 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 
     let (records : QuestionDto*) = alloc()
     let (count_question) = questions_count.read(id_form)
-    _recurse_view_solution_records(id_form, count_question, records, 0)
+    _recurse_view_question_dto(id_form, count_question, records, 0)
 
     return (count_question, records)
 end
@@ -429,9 +429,21 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     return ()
 end
 
+func _recurse_view_question{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(id_form : felt, len : felt, arr : Question*, idx : felt) -> ():
+    if idx == len:
+        return ()
+    end
 
+    let (record : Question) = questions.read(id_form, idx)
+    assert arr[idx] = Question(record.description, record.optionA, record.optionB, record.optionC, record.optionD, record.optionCorrect)
 
-func _recurse_view_solution_records{
+    _recurse_view_question(id_form, len, arr, idx + 1)
+    return ()
+end
+
+func _recurse_view_question_dto{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 }(id_form : felt, len : felt, arr : QuestionDto*, idx : felt) -> ():
     if idx == len:
@@ -441,7 +453,7 @@ func _recurse_view_solution_records{
     let (record : Question) = questions.read(id_form, idx)
     assert arr[idx] = QuestionDto(record.description, record.optionA, record.optionB, record.optionC, record.optionD)
 
-    _recurse_view_solution_records(id_form, len, arr, idx + 1)
+    _recurse_view_question_dto(id_form, len, arr, idx + 1)
     return ()
 end
 
