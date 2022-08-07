@@ -7,18 +7,13 @@ from src.form import view_form_count
 from src.form import view_form
 from src.form import view_question_count
 from src.form import view_questions
+from src.form import view_users_form_count
 from src.form import create_form
 from src.form import create_form_add_questions
 from src.form import add_questions
 from src.form import forms_change_status_ready
 from src.form import send_answer
 from src.form import _get_answer_for_id
-# from src.forms import view_question
-# from src.forms import view_question_owner
-# from src.forms import view_count_users_test
-# from src.forms import view_user_test
-# from src.forms import view_points_user_test
-# from src.forms import ready_test
 from src.form import STATUS_OPEN
 from src.form import STATUS_READY
 from src.form import STATUS_CLOSE
@@ -121,49 +116,26 @@ func test_forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuil
     return ()
 end
 
-# @view
-# func test_add_correct_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     alloc_locals
+#send answer to forms
+@view
+func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+    alloc_locals
+    let (local array: Question*) = alloc() 
+    assert array[0] = Question(00,11, 22, 33, 44, 1)
+    let (id_form) = create_form_add_questions('starknet', 1, array, 0)
     
-#     let (test_id) = create_test(1)
+    let (users_form_count) = view_users_form_count(id_form)
+    assert users_form_count = 0
 
-#     let (test: Test) = view_test(test_id)
-#     assert test.open = TRUE
+    let (local array1 : felt*) = alloc()
+    assert array1[0] = 1
+    send_answer(id_form, 1, array1)
 
-#     let (local qarray: Question*) = alloc() 
-#     assert qarray[0] = Question(00,11, 22, 33, 44, 1)
-#     add_questions(test_id, 1, qarray)
+    let (users_form_count) = view_users_form_count(id_form)
+    assert users_form_count = 1
     
-
-#     ready_test(test_id)
-
-#     let (test1: Test) = view_test(test_id)
-#     assert test1.open = FALSE
-
-#     return ()
-# end
-
-# @view
-# func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
-#     alloc_locals
-
-#     let (test_id) = create_test(1)
-#     let (local qarray: Question*) = alloc() 
-#     assert qarray[0] = Question(00,11, 22, 33, 44, 1)
-#     add_questions(test_id, 1, qarray)
-
-#     ready_test(test_id)
-    
-#     let (local array : felt*) = alloc()
-#     assert array[0] = 1
-#     send_answer(test_id, 1, array)
-
-#     let (caller_address) = get_caller_address()
-#     let (points) = view_points_user_test(caller_address, test_id)
-#     assert points = 5
-    
-#     return ()
-# end
+    return ()
+end
 
 # @view
 # func test_send_answer2{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():

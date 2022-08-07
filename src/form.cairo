@@ -287,19 +287,46 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     with_attr error_message("You have already answered this form"):
         assert bool = FALSE
     end
-    
-    let (point) = _recurse_add_answers(id_form, count_question, answers, 0)
 
-    points_users_form.write(caller_address, id_form, point)
+    # guardo la respuesta del usuario
+    _recurse_add_answers(id_form, count_question, answers, 0, caller_address)
+
+###### ESTAS VARIABLES CAPAZ SE PUEDEN UNIFICAR
+    # guardo que el usuario ya realizo el form    
     check_users_form.write(caller_address, id_form, TRUE)
     
     let (count_users) = count_users_form.read(id_form)
+    # guardo que usuario hizo tal form
     users_form.write(id_form, count_users, caller_address)
+######
+
+    #cantidad de usuarios por form
     count_users_form.write(id_form, count_users + 1)
 
-    SendPoint.emit(id_form, point) 
     return ()
 end
+
+    # # mover logica a la funcion cerrar form
+
+    # #obtengo puntos de la respuesta actual
+    # let (point) = _recurse_add_answers(id_form, count_question, answers, 0)
+
+    # # guardo puntos de usuario en form
+    # points_users_form.write(caller_address, id_form, point)
+
+    # # guardo que el usuario ya realizo el form    
+    # check_users_form.write(caller_address, id_form, TRUE)
+    
+    # let (count_users) = count_users_form.read(id_form)
+
+    # # guardo que usuario hizo tal form
+    # users_form.write(id_form, count_users, caller_address)
+
+    # #cantidad de usuarios por form
+    # count_users_form.write(id_form, count_users + 1)
+
+    # SendPoint.emit(id_form, point) 
+    # return ()
 
 #
 # Internal
@@ -384,32 +411,63 @@ func _recurse_view_answers_records{
 end
 
 func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form : felt, len : felt, arr : felt*, idx : felt
-) -> (points : felt):
+    id_form : felt, len : felt, arr : felt*, idx : felt, caller_address: felt
+) -> ():
     alloc_locals
     if len == 0:
-        return (0)
+        return ()
     end
 
-    let (answer_correct) = correct_form_answers.read(id_form, idx)
-
+    # respuesta del usuario
     tempvar answer_user : felt
     answer_user = cast([arr], felt)
+    
     # 0 >= answer <= 3
-    assert_in_range(answer_user, 0, 4)
-    let (caller_address) = get_caller_address()
+    with_attr error_message("The option must be between 0 and 3"):
+        assert_in_range(answer_user, 0, 4)
+    end
+    
+    # guardo la respuesta del usuario
     answer_users_form.write(caller_address, id_form, idx, answer_user)
 
-    local t
-    if answer_user == answer_correct:
-        t = 5
-    else:
-        t = 0
-    end
-    let (local total) = _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1)
-    let res = t + total
-    return (res)
+    _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1, caller_address)
+    return ()
 end
+
+# func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     id_form : felt, len : felt, arr : felt*, idx : felt
+# ) -> (points : felt):
+#     alloc_locals
+#     if len == 0:
+#         return (0)
+#     end
+
+#     # respuesta correcta 
+#     let (answer_correct) = correct_form_answers.read(id_form, idx)
+
+#     # respuesta del usuario
+#     tempvar answer_user : felt
+#     answer_user = cast([arr], felt)
+    
+#     # 0 >= answer <= 3
+#     assert_in_range(answer_user, 0, 4)
+
+#     let (caller_address) = get_caller_address()
+    
+#     # guardo la respuesta del usuario
+#     answer_users_form.write(caller_address, id_form, idx, answer_user)
+
+#     # si la respuesta es correcta
+#     local t
+#     if answer_user == answer_correct:
+#         t = 5
+#     else:
+#         t = 0
+#     end
+#     let (local total) = _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1)
+#     let res = t + total
+#     return (res)
+# end
 
 func _get_answer_for_id{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     question : Question, id_answer : felt
