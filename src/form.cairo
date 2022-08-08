@@ -62,6 +62,7 @@ end
 
 struct Row:
     member user: felt
+    member nickname: felt
     member score: felt
 end
 
@@ -118,6 +119,11 @@ end
 #usuarios que hicieron el form / boolean
 @storage_var
 func check_users_form(user_address: felt, id_form: felt) -> (bool: felt):
+end
+
+#usuarios que hicieron el form / nickname
+@storage_var
+func nickname_users_form(user_address: felt, id_form: felt) -> (nickname: felt):
 end
 
 #puntos de un usuario por form
@@ -303,7 +309,7 @@ end
 
 @external
 func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form : felt, answers_len : felt, answers : felt*
+    id_form: felt, nickname: felt, answers_len: felt, answers: felt*
 ) -> ():
     alloc_locals
 
@@ -329,6 +335,8 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ###### ESTAS VARIABLES CAPAZ SE PUEDEN UNIFICAR
     # guardo que el usuario ya realizo el form    
     check_users_form.write(caller_address, id_form, TRUE)
+
+    nickname_users_form.write(caller_address, id_form, nickname)
     
     let (count_users) = count_users_form.read(id_form)
     # guardo que usuario hizo tal form
@@ -524,7 +532,8 @@ func _recurse_view_answers_records{
 
     let (user: felt) = users_form.read(id_form, idx)
     let (point) = points_users_form.read(user, id_form)
-    assert arr[idx] = Row(user, point)
+    let (nickname) = nickname_users_form.read(user, id_form)
+    assert arr[idx] = Row(user, nickname, point)
 
     _recurse_view_answers_records(id_form, len, arr, idx + 1)
     return ()
