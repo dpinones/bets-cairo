@@ -110,6 +110,11 @@ end
 func count_users_form(id_form: felt) -> (count_users: felt):
 end
 
+#cantidad de foms por usuario
+@storage_var
+func count_forms_by_user(user_address: felt) -> (count_forms: felt):
+end
+
 #usuarios que hicieron el form / boolean
 @storage_var
 func check_users_form(user_address: felt, id_form: felt) -> (bool: felt):
@@ -141,6 +146,26 @@ func view_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
 ) -> (form: Form):
     let (res: Form) = forms.read(id_form)
     return (res)
+end
+
+@view
+func view_count_forms_by_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt
+) -> (res: felt):
+    let (count_users_form: felt) = count_forms_by_user.read(user_address)
+    return (count_users_form)
+end
+
+@view
+func view_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt
+) -> (records_len: felt, records: Form*):
+    alloc_locals
+    let (count: felt) = forms_count.read()
+    let (records: Form*) = alloc()
+    _recurse_my_forms(user_address, 0, count, records, 0)
+    let (count_forms) = count_forms_by_user.read(user_address)
+    return (count_forms, records)
 end
 
 @view
@@ -214,6 +239,7 @@ func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     #create form
     alloc_locals
     let (local id_form) = _create_form(name)
+    _add_count_user_forms()
     FormCreated.emit(id_form)
     return (id_form)
 end
@@ -237,6 +263,7 @@ func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     if status_open == 0:
         _change_status_ready_form(id_form, name)
     end
+    _add_count_user_forms()
 
     FormCreated.emit(id_form)
     return (id_form)
@@ -427,6 +454,36 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     questions_count.write(id_form, count_question + dquestions_len)
 
     return ()
+end
+
+func _add_count_user_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> ():
+    let (caller_address: felt) = get_caller_address()
+    let (count: felt) = count_forms_by_user.read(caller_address)
+    count_forms_by_user.write(caller_address, count + 1)
+    return ()
+end
+
+func _recurse_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt,
+    index: felt,
+    len: felt,
+    arr: Form*,
+    idx: felt
+) -> ():
+    if index == len:
+        return ()
+    end
+
+    let (form: Form) = forms.read(index)
+    if  form.created_at == user_address:
+        # assert arr[idx] = form
+        assert arr[idx] = Form(form.name, form.created_at, form.status)
+        _recurse_my_forms(user_address, index + 1, len, arr, idx + 1)
+        return ()
+    else:
+        _recurse_my_forms(user_address, index + 1, len , arr, idx)
+        return ()
+    end
 end
 
 func _recurse_view_question{

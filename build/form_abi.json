@@ -151,6 +151,44 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "name": "user_address",
+                "type": "felt"
+            }
+        ],
+        "name": "view_count_forms_by_user",
+        "outputs": [
+            {
+                "name": "res",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "user_address",
+                "type": "felt"
+            }
+        ],
+        "name": "view_my_forms",
+        "outputs": [
+            {
+                "name": "records_len",
+                "type": "felt"
+            },
+            {
+                "name": "records",
+                "type": "Form*"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "view_form_count",
         "outputs": [
@@ -241,6 +279,27 @@
     {
         "inputs": [
             {
+                "name": "id_form",
+                "type": "felt"
+            },
+            {
+                "name": "user",
+                "type": "felt"
+            }
+        ],
+        "name": "view_score_form_user",
+        "outputs": [
+            {
+                "name": "point",
+                "type": "felt"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "name": "name",
                 "type": "felt"
             }
@@ -310,6 +369,17 @@
             {
                 "name": "id_form",
                 "type": "felt"
+            }
+        ],
+        "name": "forms_change_status_ready",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "id_form",
+                "type": "felt"
             },
             {
                 "name": "answers_len",
@@ -321,6 +391,17 @@
             }
         ],
         "name": "send_answer",
+        "outputs": [],
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "name": "id_form",
+                "type": "felt"
+            }
+        ],
+        "name": "close_forms",
         "outputs": [],
         "type": "function"
     }
