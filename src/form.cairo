@@ -621,3 +621,57 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     _add_a_questions(id_form, id_question + 1, dquestions_len - 1, dquestions + Question.SIZE)
     return ()
 end
+
+
+@external
+func remove_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form: felt,
+    id_question_remove: felt
+) -> ():
+    #create form
+    alloc_locals
+
+    # empezar a pisar las preguntas a partir del index id_question
+    
+    # - cantidad de preguntas
+    let (count_question) = questions_count.read(id_form)
+
+    # eliminar pregunta
+    _remove_questions(id_form, id_question_remove, 0, 0, count_question)
+    
+    # restar uno a la cantidad de preguntas
+    questions_count.write(id_form, count_question - 1)
+
+    # close form
+    FormCreated.emit(id_form)
+    return ()
+end
+
+func _remove_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form: felt, id_question_remove: felt, id_question:felt, idx: felt, count: felt
+) -> ():
+    if count == 0:
+        return ()
+    end
+
+    if id_question == id_question_remove:
+        _remove_questions(id_form, id_question_remove, id_question + 1, idx, count - 1)
+        return ()
+    else:
+        let (question: Question) = questions.read(id_form, id_question)
+        questions.write(
+            id_form,
+            idx,
+            Question(
+            question.description,
+            question.optionA,
+            question.optionB,
+            question.optionC,
+            question.optionD,
+            question.optionCorrect
+            )
+        )
+        _remove_questions(id_form, id_question_remove,  id_question + 1, idx + 1, count - 1)
+        return ()
+    end
+end
