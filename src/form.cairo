@@ -38,6 +38,7 @@ end
 #
 
 struct Form:
+    member id: felt
     member name: felt
     member created_at: felt
     member status: felt
@@ -424,7 +425,7 @@ func _create_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 
     let (id_form) = forms_count.read()
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(name, caller_address, STATUS_OPEN))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_OPEN))
     forms_count.write(id_form + 1)
     return (id_form)
 end
@@ -434,7 +435,7 @@ func _change_status_ready_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, r
     name: felt
 ) -> ():
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(name, caller_address, STATUS_READY))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_READY))
     return ()
 end
 
@@ -443,7 +444,7 @@ func  _change_status_close_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     name: felt
 ) -> ():
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(name, caller_address, STATUS_CLOSE))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_CLOSE))
     return ()
 end
 
@@ -485,7 +486,7 @@ func _recurse_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (form: Form) = forms.read(index)
     if  form.created_at == user_address:
         # assert arr[idx] = form
-        assert arr[idx] = Form(form.name, form.created_at, form.status)
+        assert arr[idx] = Form(form.id, form.name, form.created_at, form.status)
         _recurse_my_forms(user_address, index + 1, len, arr, idx + 1)
         return ()
     else:
