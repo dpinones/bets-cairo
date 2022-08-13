@@ -12,6 +12,7 @@ from starkware.cairo.common.math import (
     assert_lt,
     assert_in_range,
 )
+from starkware.cairo.common.hash import hash2
 
 #
 # Constants
@@ -42,6 +43,8 @@ struct Form:
     member name: felt
     member created_at: felt
     member status: felt
+    member secret_hash: felt
+    member secret: felt
 end
 
 struct Question:
@@ -50,15 +53,7 @@ struct Question:
     member optionB: felt
     member optionC: felt
     member optionD: felt
-    member optionCorrect: felt
-end
-
-struct QuestionDto:
-    member description: felt
-    member optionA: felt
-    member optionB: felt
-    member optionC: felt
-    member optionD: felt
+    member option_correct_hash: felt
 end
 
 struct Row:
@@ -186,10 +181,10 @@ end
 @view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
-) -> (records_len : felt, records : QuestionDto*):
+) -> (records_len : felt, records : Question*):
     alloc_locals
 
-    let (records : QuestionDto*) = alloc()
+    let (records : Question*) = alloc()
     let (count_question) = questions_count.read(id_form)
     _recurse_view_question_dto(id_form, count_question, records, 0)
 
@@ -239,36 +234,37 @@ end
 # Externals
 #
 
-@external
-func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt
-) -> (id_form: felt):
-    #create form
-    alloc_locals
-    let (local id_form) = _create_form(name)
-    _add_count_user_forms()
-    FormCreated.emit(id_form)
-    return (id_form)
-end
+# @external
+# func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     name : felt
+# ) -> (id_form: felt):
+#     #create form
+#     alloc_locals
+#     let (local id_form) = _create_form(name)
+#     _add_count_user_forms()
+#     FormCreated.emit(id_form)
+#     return (id_form)
+# end
 
 @external
 func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    name : felt,
-    dquestions_len : felt,
-    dquestions : Question*,
-    status_open : felt
+    name: felt,
+    dquestions_len: felt,
+    dquestions: Question*,
+    status_open: felt,
+    secret_hash: felt
 ) -> (id_form: felt):
     #create form
     alloc_locals
 
-    let (local id_form) = _create_form(name)
+    let (local id_form) = _create_form(name, secret_hash)
 
     #add questions
     _add_questions(id_form, dquestions_len, dquestions)
 
     # close form
     if status_open == 0:
-        _change_status_ready_form(id_form, name)
+        _change_status_ready_form(id_form, name, secret_hash)
     end
     _add_count_user_forms()
 
@@ -276,35 +272,35 @@ func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     return (id_form)
 end
 
-@external
-func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form : felt,
-    dquestions_len : felt,
-    dquestions : Question*,
-    status_open : felt
-) -> ():
-    #create form
-    alloc_locals
+# @external
+# func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+#     id_form : felt,
+#     dquestions_len : felt,
+#     dquestions : Question*,
+#     status_open : felt
+# ) -> ():
+#     #create form
+#     alloc_locals
 
-    #add questions
-    _add_questions(id_form, dquestions_len, dquestions)
+#     #add questions
+#     _add_questions(id_form, dquestions_len, dquestions)
     
-    # close form
-    if status_open == 0:
-        let (form: Form) = forms.read(id_form)
-        _change_status_ready_form(id_form, form.name)
-    end
+#     # close form
+#     if status_open == 0:
+#         let (form: Form) = forms.read(id_form)
+#         _change_status_ready_form(id_form, form.name)
+#     end
 
-    FormCreated.emit(id_form)
-    return ()
-end
+#     FormCreated.emit(id_form)
+#     return ()
+# end
 
 @external
 func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
 ) -> ():
     let (form: Form) = forms.read(id_form)
-    _change_status_ready_form(id_form, form.name)
+    _change_status_ready_form(id_form, form.name, form.secret_hash)
     return ()
 end
 
@@ -352,24 +348,36 @@ end
 
 @external
 func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form : felt
+    id_form: felt,
+    secret: felt
 ) -> ():
+    alloc_locals
+    let (form: Form) = forms.read(id_form)
+
+    # verifico que el secreto sea el mismo que el que se creo el form
+    # hash(secret) == form.secret_hash
+    let (hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
+    assert hash = form.secret_hash
+
     #obtengo cantidad de usuarios que hicieron el form
     let (count_users) = count_users_form.read(id_form)
     #obtengo cantidad de preguntas por form
     let (count_question) = questions_count.read(id_form)
-    _close_forms(id_form, count_users, count_question)
+
+    _close_forms(id_form, count_users, count_question, secret)
 
     # CERRAR EL FORM
-    let (form: Form) = forms.read(id_form)
-    _change_status_close_form(id_form, form.name)
+    _change_status_close_form(id_form, form.name, form.secret_hash, secret)
 
     return ()
 end
 
 #calculo los puntos de un formulario
 func _close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form : felt, count_users : felt, count_question
+    id_form: felt,
+    count_users: felt,
+    count_question: felt, 
+    secret: felt
 ) -> ():
     alloc_locals
     if count_users == 0:
@@ -379,18 +387,22 @@ func _close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     #obtener el usuario
     let (user) = users_form.read(id_form, count_users - 1)
     #obtener los puntos del usuario
-    let (point) = _calculate_score(id_form, count_question, 0, user)
+    let (point) = _calculate_score(id_form, count_question, 0, user, secret)
 
     # guardo puntos de usuario en form
     points_users_form.write(user, id_form, point)
 
-    _close_forms(id_form, count_users - 1, count_question)
+    _close_forms(id_form, count_users - 1, count_question, secret)
     return ()
 end
 
 #calcula puntos de un usuario
 func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    id_form: felt, count_answer: felt, idx: felt, caller_address: felt
+    id_form: felt, 
+    count_answer: felt, 
+    idx: felt, 
+    caller_address: felt,
+    secret: felt
 ) -> (points: felt):
     alloc_locals
     if count_answer == 0:
@@ -398,19 +410,24 @@ func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     end
 
     # respuesta correcta 
-    let (answer_correct) = correct_form_answers.read(id_form, idx)
+    let (option_correct_hash) = correct_form_answers.read(id_form, idx)
 
     # respuesta del usuario
-    let (answer_user) = answer_users_form.read(caller_address, id_form, idx)
+    let (answer_user_id) = answer_users_form.read(caller_address, id_form, idx)
+    let (question: Question) = questions.read(id_form, idx)
+    let (answer_user) = _get_answer_for_id(question, answer_user_id)
+
+    # hash(answer_user, secret) == option_correct_hash
 
     # si la respuesta es correcta
+    let (answer_user_hash) = hash2{hash_ptr=pedersen_ptr}(answer_user, secret)
     local t
-    if answer_user == answer_correct:
+    if answer_user_hash == option_correct_hash:
         t = 5
     else:
         t = 0
     end
-    let (local total) = _calculate_score(id_form, count_answer - 1, idx + 1, caller_address)
+    let (local total) = _calculate_score(id_form, count_answer - 1, idx + 1, caller_address, secret)
     let res = t + total
     return (res)
 end
@@ -420,31 +437,35 @@ end
 #
 
 func _create_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt
+    name: felt,
+    secret_hash: felt
 ) -> (id_form : felt):
 
     let (id_form) = forms_count.read()
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(id_form, name, caller_address, STATUS_OPEN))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_OPEN, secret_hash, 0))
     forms_count.write(id_form + 1)
     return (id_form)
 end
 
 func _change_status_ready_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     id_form: felt, 
-    name: felt
+    name: felt,
+    secret_hash: felt
 ) -> ():
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(id_form, name, caller_address, STATUS_READY))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_READY, secret_hash, 0))
     return ()
 end
 
 func  _change_status_close_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     id_form: felt, 
-    name: felt
+    name: felt,
+    secret_hash: felt,
+    secret: felt
 ) -> ():
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(id_form, name, caller_address, STATUS_CLOSE))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_CLOSE, secret_hash, secret))
     return ()
 end
 
@@ -486,7 +507,7 @@ func _recurse_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     let (form: Form) = forms.read(index)
     if  form.created_at == user_address:
         # assert arr[idx] = form
-        assert arr[idx] = Form(form.id, form.name, form.created_at, form.status)
+        assert arr[idx] = Form(form.id, form.name, form.created_at, form.status, form.secret_hash, form.secret)
         _recurse_my_forms(user_address, index + 1, len, arr, idx + 1)
         return ()
     else:
@@ -503,7 +524,7 @@ func _recurse_view_question{
     end
 
     let (record : Question) = questions.read(id_form, idx)
-    assert arr[idx] = Question(record.description, record.optionA, record.optionB, record.optionC, record.optionD, record.optionCorrect)
+    assert arr[idx] = Question(record.description, record.optionA, record.optionB, record.optionC, record.optionD, record.option_correct_hash)
 
     _recurse_view_question(id_form, len, arr, idx + 1)
     return ()
@@ -511,13 +532,13 @@ end
 
 func _recurse_view_question_dto{
     syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
-}(id_form : felt, len : felt, arr : QuestionDto*, idx : felt) -> ():
+}(id_form : felt, len : felt, arr : Question*, idx : felt) -> ():
     if idx == len:
         return ()
     end
 
     let (record : Question) = questions.read(id_form, idx)
-    assert arr[idx] = QuestionDto(record.description, record.optionA, record.optionB, record.optionC, record.optionD)
+    assert arr[idx] = Question(record.description, record.optionA, record.optionB, record.optionC, record.optionD, record.option_correct_hash)
 
     _recurse_view_question_dto(id_form, len, arr, idx + 1)
     return ()
@@ -598,13 +619,13 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let optionB = [dquestions].optionB
     let optionC = [dquestions].optionC
     let optionD = [dquestions].optionD
-    let optionCorrect = [dquestions].optionCorrect
+    let option_correct_hash = [dquestions].option_correct_hash
     
-    with_attr error_message("Option correct must be between 0 and 3"):
-        assert_in_range(optionCorrect, 0, 4)
-    end
+    # with_attr error_message("Option correct must be between 0 and 3"):
+    #     assert_in_range(option_correct_hash, 0, 4)
+    # end
 
-    correct_form_answers.write(id_form, id_question, optionCorrect)
+    correct_form_answers.write(id_form, id_question, option_correct_hash)
 
     questions.write(
         id_form,
@@ -615,7 +636,7 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         optionB,
         optionC,
         optionD,
-        optionCorrect
+        option_correct_hash
         )
     )
 
@@ -669,7 +690,7 @@ func _remove_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
             question.optionB,
             question.optionC,
             question.optionD,
-            question.optionCorrect
+            question.option_correct_hash
             )
         )
         _remove_questions(id_form, id_question_remove,  id_question + 1, idx + 1, count - 1)
