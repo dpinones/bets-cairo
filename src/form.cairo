@@ -234,18 +234,6 @@ end
 # Externals
 #
 
-# @external
-# func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     name : felt
-# ) -> (id_form: felt):
-#     #create form
-#     alloc_locals
-#     let (local id_form) = _create_form(name)
-#     _add_count_user_forms()
-#     FormCreated.emit(id_form)
-#     return (id_form)
-# end
-
 @external
 func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     name: felt,
@@ -271,29 +259,6 @@ func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     FormCreated.emit(id_form)
     return (id_form)
 end
-
-# @external
-# func add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-#     id_form : felt,
-#     dquestions_len : felt,
-#     dquestions : Question*,
-#     status_open : felt
-# ) -> ():
-#     #create form
-#     alloc_locals
-
-#     #add questions
-#     _add_questions(id_form, dquestions_len, dquestions)
-    
-#     # close form
-#     if status_open == 0:
-#         let (form: Form) = forms.read(id_form)
-#         _change_status_ready_form(id_form, form.name)
-#     end
-
-#     FormCreated.emit(id_form)
-#     return ()
-# end
 
 @external
 func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
