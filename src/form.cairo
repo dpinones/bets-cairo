@@ -20,7 +20,7 @@ from starkware.cairo.common.hash import hash2
 
 const STATUS_OPEN = 'OPEN'
 const STATUS_READY = 'READY'
-const STATUS_CLOSE = 'CLOSE'
+const STATUS_CLOSED = 'CLOSED'
 
 #
 # Events
@@ -429,7 +429,7 @@ func  _change_status_close_form{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
     secret: felt
 ) -> ():
     let (caller_address) = get_caller_address()
-    forms.write(id_form, Form(id_form, name, caller_address, STATUS_CLOSE, secret_hash, secret))
+    forms.write(id_form, Form(id_form, name, caller_address, STATUS_CLOSED, secret_hash, secret))
     return ()
 end
 
