@@ -14,6 +14,8 @@ from starkware.cairo.common.math import (
 )
 from starkware.cairo.common.hash import hash2
 
+from src.common.utils import Question, Form, Row
+
 #
 # Constants
 #
@@ -32,34 +34,6 @@ end
 
 @event
 func SendPoint(id_form: felt, point: felt):
-end
-
-#
-# Struct
-#
-
-struct Form:
-    member id: felt
-    member name: felt
-    member created_at: felt
-    member status: felt
-    member secret_hash: felt
-    member secret: felt
-end
-
-struct Question:
-    member description: felt
-    member optionA: felt
-    member optionB: felt
-    member optionC: felt
-    member optionD: felt
-    member option_correct_hash: felt
-end
-
-struct Row:
-    member user: felt
-    member nickname: felt
-    member score: felt
 end
 
 #

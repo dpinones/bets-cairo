@@ -27,24 +27,7 @@ from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.hash import hash2
 
-@contract_interface
-namespace StorageContract:
-
-    func create_form(
-        name: felt,
-        dquestions_len: felt,
-        dquestions: Question*,
-        status_open: felt,
-        secret_hash: felt
-    ) -> (id_form: felt):
-    end
-
-    func view_form(
-        id_form: felt
-    ) -> (form: Form):
-    end
-
-end
+from src.interfaces.IForm import IForm
 
 @external
 func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
@@ -60,7 +43,7 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     let (secret_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
     let (option_correct_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 'celeste')
     assert array[0] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', option_correct_hash)
-    let (id_form) = StorageContract.create_form(
+    let (id_form) = IForm.create_form(
         contract_address=contract_address,
         name='Test 1',
         dquestions_len=1, 
@@ -69,7 +52,7 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         secret_hash=secret_hash
     )
 
-    let (form: Form) = StorageContract.view_form(
+    let (form: Form) = IForm.view_form(
         contract_address=contract_address,
         id_form=id_form
     )
@@ -78,8 +61,10 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     assert form.secret_hash = secret_hash
     assert form.secret = 0
     
-    # let (question_count) = view_question_count(id_form)
-    # assert question_count = 1
+    let (question_count) = IForm.view_question_count(
+        contract_address=contract_address,
+        id_form=id_form)
+    assert question_count = 1
     return ()
 end
 
