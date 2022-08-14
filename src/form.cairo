@@ -244,7 +244,6 @@ func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
 ) -> (id_form: felt):
     #create form
     alloc_locals
-
     let (local id_form) = _create_form(name, secret_hash)
 
     #add questions
