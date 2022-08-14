@@ -6,19 +6,19 @@ from src.form import STATUS_OPEN
 from src.form import STATUS_READY
 from src.form import STATUS_CLOSED
 
-from src.form import view_form_count
-from src.form import view_form
-from src.form import view_question_count
-from src.form import view_questions
-from src.form import view_users_form_count
-from src.form import view_score_form_user
+# from src.form import view_form_count
+# from src.form import view_form
+# from src.form import view_question_count
+# from src.form import view_questions
+# from src.form import view_users_form_count
+# from src.form import view_score_form_user
 
-from src.form import create_form
-from src.form import forms_change_status_ready
-from src.form import send_answer
+# from src.form import create_form
+# from src.form import forms_change_status_ready
+# from src.form import send_answer
 
-from src.form import _get_answer_for_id
-from src.form import close_forms
+# from src.form import _get_answer_for_id
+# from src.form import close_forms
 
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
@@ -27,24 +27,59 @@ from starkware.cairo.common.alloc import alloc
 from starkware.starknet.common.syscalls import get_caller_address
 from starkware.cairo.common.hash import hash2
 
-@view
+@contract_interface
+namespace StorageContract:
+
+    func create_form(
+        name: felt,
+        dquestions_len: felt,
+        dquestions: Question*,
+        status_open: felt,
+        secret_hash: felt
+    ) -> (id_form: felt):
+    end
+
+    func view_form(
+        id_form: felt
+    ) -> (form: Form):
+    end
+
+end
+
+@external
 func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
     alloc_locals
+    
+    local contract_address : felt
+    # We deploy contract and put its address into a local variable. Second argument is calldata array
+    %{ ids.contract_address = deploy_contract("./src/form.cairo", []).contract_address %}
+
+
     let (local array: Question*) = alloc() 
     let secret = 'starknet'
     let (secret_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
     let (option_correct_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 'celeste')
     assert array[0] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', option_correct_hash)
-    let (id_form) = create_form('Test 1', 1, array, 0, secret_hash)
+    let (id_form) = StorageContract.create_form(
+        contract_address=contract_address,
+        name='Test 1',
+        dquestions_len=1, 
+        dquestions=array,
+        status_open=0,
+        secret_hash=secret_hash
+    )
 
-    let (form: Form) = view_form(id_form)
+    let (form: Form) = StorageContract.view_form(
+        contract_address=contract_address,
+        id_form=id_form
+    )
     assert form.name = 'Test 1'
     assert form.status = STATUS_READY
     assert form.secret_hash = secret_hash
     assert form.secret = 0
     
-    let (question_count) = view_question_count(id_form)
-    assert question_count = 1
+    # let (question_count) = view_question_count(id_form)
+    # assert question_count = 1
     return ()
 end
 
