@@ -38,17 +38,17 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
     %{ ids.contract_address = deploy_contract("./src/form.cairo", []).contract_address %}
 
 
-    let (local array: Question*) = alloc() 
     let secret = 'starknet'
     let (secret_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
     let (option_correct_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 'celeste')
+    let (local array: Question*) = alloc() 
     assert array[0] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', option_correct_hash)
     let (id_form) = IForm.create_form(
         contract_address=contract_address,
-        name='Test 1',
+        name='Create Form',
         dquestions_len=1, 
         dquestions=array,
-        status_open=0,
+        status_open=1,
         secret_hash=secret_hash
     )
 
@@ -56,8 +56,8 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         contract_address=contract_address,
         id_form=id_form
     )
-    assert form.name = 'Test 1'
-    assert form.status = STATUS_READY
+    assert form.name = 'Create Form'
+    assert form.status = STATUS_OPEN
     assert form.secret_hash = secret_hash
     assert form.secret = 0
     
@@ -65,6 +65,25 @@ func test_form_with_ready_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin
         contract_address=contract_address,
         id_form=id_form)
     assert question_count = 1
+
+    let (local array1: Question*) = alloc() 
+    assert array1[0] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', 1)
+    assert array1[1] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', 1)
+    let (id_form1) = IForm.updated_form(
+        contract_address=contract_address,
+        id_form=id_form,
+        name='Updated Form',
+        dquestions_len=2, 
+        dquestions=array1,
+        status_open=0,
+        secret_hash=secret_hash
+    )
+
+    let (question_count) = IForm.view_question_count(
+        contract_address=contract_address,
+        id_form=id_form1)
+    assert question_count = 2
+    
     return ()
 end
 

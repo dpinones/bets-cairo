@@ -20,9 +20,9 @@ from src.common.utils import Question, Form, Row
 # Constants
 #
 
-const STATUS_READY = 0
-const STATUS_OPEN = 1
-const STATUS_CLOSED = 2
+const STATUS_READY = 'ready'
+const STATUS_OPEN = 'open'
+const STATUS_CLOSED = 'closed'
 
 #
 # Events
@@ -261,7 +261,7 @@ func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     
     #validar estado
     with_attr error_message("status can be 0 or 1"):
-        assert_in_range(status_open, 0, 1)
+        assert_in_range(status_open, 0, 2)
     end
 
     # len de preguntas > 0
