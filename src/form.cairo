@@ -91,9 +91,9 @@ func questions_count(id_form: felt) -> (questions_count: felt):
 end
 
 #respuestas correctas por form / de uso interno
-@storage_var
-func correct_form_answers(id_form: felt, id_question: felt) -> (correct_form_answer: felt):
-end
+# @storage_var
+# func correct_form_answers(id_form: felt, id_question: felt) -> (correct_form_answer: felt):
+# end
 
 ### USERS ###
 
@@ -107,7 +107,7 @@ end
 func count_users_form(id_form: felt) -> (count_users: felt):
 end
 
-#cantidad de foms por usuario
+#cantidad de forms por usuario
 @storage_var
 func count_forms_by_user(user_address: felt) -> (count_forms: felt):
 end
@@ -527,8 +527,9 @@ func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         return (0)
     end
 
-    # respuesta correcta 
-    let (option_correct_hash) = correct_form_answers.read(id_form, idx)
+    # respuesta correcta
+    let (question: Question) = questions.read(id_form, idx)
+    # let (option_correct_hash) = correct_form_answers.read(id_form, idx)
 
     # respuesta del usuario
     let (answer_user_id) = answer_users_form.read(caller_address, id_form, idx)
@@ -540,7 +541,7 @@ func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     # si la respuesta es correcta
     let (answer_user_hash) = hash2{hash_ptr=pedersen_ptr}(answer_user, secret)
     local t
-    if answer_user_hash == option_correct_hash:
+    if answer_user_hash == question.option_correct_hash:
         t = 5
     else:
         t = 0
@@ -654,8 +655,9 @@ func _recurse_view_correct_form_answers{
         return ()
     end
 
-    let (option_correct) = correct_form_answers.read(id_form, idx)
-    assert arr[idx] = option_correct
+    let (question: Question) = questions.read(id_form, idx)
+    # let (option_correct) = correct_form_answers.read(id_form, idx)
+    assert arr[idx] = question.option_correct_hash
 
     _recurse_view_correct_form_answers(id_form, len, arr, idx + 1)
     return ()
@@ -770,7 +772,7 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     #     assert_in_range(option_correct_hash, 0, 4)
     # end
 
-    correct_form_answers.write(id_form, id_question, option_correct_hash)
+    # correct_form_answers.write(id_form, id_question, option_correct_hash)
 
     questions.write(
         id_form,
