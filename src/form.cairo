@@ -18,9 +18,9 @@ from starkware.cairo.common.hash import hash2
 # Constants
 #
 
-const STATUS_OPEN = 'OPEN'
-const STATUS_READY = 'READY'
-const STATUS_CLOSED = 'CLOSED'
+const STATUS_READY = 0
+const STATUS_OPEN = 1
+const STATUS_CLOSED = 2
 
 #
 # Events
