@@ -95,10 +95,4 @@ namespace IForm:
         secret: felt
     ) -> ():
     end
-
-    func remove_questions(
-        id_form: felt,
-        id_question_remove: felt
-    ) -> ():
-    end
 end
