@@ -142,6 +142,7 @@ end
 # Getters
 #
 
+# ver forms
 @view
 func view_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form: felt
@@ -150,6 +151,7 @@ func view_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (res)
 end
 
+# ver cantidad de forms que cree (PROFE)
 @view
 func view_count_forms_by_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     user_address: felt
@@ -158,6 +160,7 @@ func view_count_forms_by_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     return (count_users_form)
 end
 
+# ver mis forms que cree(PROFE)
 @view
 func view_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     user_address: felt
@@ -170,6 +173,7 @@ func view_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     return (count_forms, records)
 end
 
+# ver cantidad de forms
 @view
 func view_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     count : felt
@@ -178,6 +182,7 @@ func view_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count)
 end
 
+# ver preguntas por form
 @view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -191,6 +196,7 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     return (count_question, records)
 end
 
+# ver cantiad de preguntas por form
 @view
 func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -199,6 +205,7 @@ func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (count)
 end
 
+# ver cantidad de usuarios que hicieron un form
 @view
 func view_users_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -208,6 +215,7 @@ func view_users_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return (count)
 end
 
+# ver el score se un form
 @view
 func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -222,6 +230,7 @@ func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count, records)
 end
 
+# ver el score de un usuario por form
 @view
 func view_score_form_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt, user: felt
@@ -230,12 +239,44 @@ func view_score_form_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     return (point)
 end
 
+# ver respuestas correctas del form
+@view
+func view_correct_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt
+) -> (records_len : felt, records : felt*):
+    alloc_locals
+
+    let (records : felt*) = alloc()
+    let (count) = questions_count.read(id_form)
+    _recurse_view_correct_form_answers(id_form, count, records, 0)
+
+    return (count, records)
+end
+
+# respuestas de un usuario por form
+@view
+func view_users_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt,
+    user: felt
+) -> (records_len : felt, records : felt*):
+    alloc_locals
+
+    let (records : felt*) = alloc()
+    let (count) = questions_count.read(id_form)
+    _recurse_view_users_form_answers(id_form, count, records, 0, user)
+
+    return (count, records)
+end
+
+# como usuario quiero ver mis forms completados
+
+
 #
 # Externals
 #
 
 @external
-func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     name: felt,
     dquestions_len: felt,
     dquestions: Question*,
@@ -253,7 +294,36 @@ func create_form_add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     if status_open == 0:
         _change_status_ready_form(id_form, name, secret_hash)
     end
+    # guardo my form
     _add_count_user_forms()
+
+    FormCreated.emit(id_form)
+    return (id_form)
+end
+
+@external
+func updated_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form: felt,
+    name: felt,
+    dquestions_len: felt,
+    dquestions: Question*,
+    status_open: felt,
+    secret_hash: felt
+) -> (id_form: felt):
+    alloc_locals
+
+    # que exista el form
+    let (form: Form) = forms.read(id_form)
+    # que el hash coincida con el del form
+    assert form.secret_hash = secret_hash
+
+    #add questions
+    _add_questions(id_form, dquestions_len, dquestions)
+
+    # close form
+    if status_open == 0:
+        _change_status_ready_form(id_form, name, secret_hash)
+    end
 
     FormCreated.emit(id_form)
     return (id_form)
@@ -321,7 +391,9 @@ func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     # verifico que el secreto sea el mismo que el que se creo el form
     # hash(secret) == form.secret_hash
     let (hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
-    assert hash = form.secret_hash
+    with_attr error_message("Secret incorrect"):
+        assert hash = form.secret_hash
+    end
 
     #obtengo cantidad de usuarios que hicieron el form
     let (count_users) = count_users_form.read(id_form)
@@ -442,7 +514,8 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     #len > 0
     assert_le(0, dquestions_len)
 
-    let (count_question) = questions_count.read(id_form)
+    # let (count_question) = questions_count.read(id_form)
+    let count_question = 0
     _add_a_questions(id_form, count_question, dquestions_len, dquestions)
 
     questions_count.write(id_form, count_question + dquestions_len)
@@ -491,6 +564,34 @@ func _recurse_view_question{
     assert arr[idx] = Question(record.description, record.optionA, record.optionB, record.optionC, record.optionD, record.option_correct_hash)
 
     _recurse_view_question(id_form, len, arr, idx + 1)
+    return ()
+end
+
+func _recurse_view_correct_form_answers{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(id_form : felt, len : felt, arr : felt*, idx : felt) -> ():
+    if idx == len:
+        return ()
+    end
+
+    let (option_correct) = correct_form_answers.read(id_form, idx)
+    assert arr[idx] = option_correct
+
+    _recurse_view_correct_form_answers(id_form, len, arr, idx + 1)
+    return ()
+end
+
+func _recurse_view_users_form_answers{
+    syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
+}(id_form : felt, len : felt, arr : felt*, idx : felt, caller_address: felt) -> ():
+    if idx == len:
+        return ()
+    end
+
+    let (option) = answer_users_form.read(caller_address, id_form, idx)
+    assert arr[idx] = option
+
+    _recurse_view_users_form_answers(id_form, len, arr, idx + 1, caller_address)
     return ()
 end
 
