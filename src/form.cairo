@@ -283,8 +283,19 @@ func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     status_open: felt,
     secret_hash: felt
 ) -> (id_form: felt):
-    #create form
     alloc_locals
+    
+    #validar estado
+    with_attr error_message("status can be 0 or 1"):
+        assert_in_range(status_open, 0, 1)
+    end
+
+    # len de preguntas > 0
+    with_attr error_message("the number of questions must be greater than 0"):
+        assert_le(0, dquestions_len)
+    end
+
+    #create form
     let (local id_form) = _create_form(name, secret_hash)
 
     #add questions
@@ -312,10 +323,36 @@ func updated_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 ) -> (id_form: felt):
     alloc_locals
 
+
     # que exista el form
+    let (count) = forms_count.read()
+    with_attr error_message("Form not found"):
+        assert_in_range(id_form, 0, count)
+    end
+
     let (form: Form) = forms.read(id_form)
+    
+    # que sea el owner
+    let (caller_address) = get_caller_address()
+    with_attr error_message("Only the owner can modify"):
+        assert form.created_at = caller_address        
+    end
+
+    # que el estado sea open
+    with_attr error_message("the current state does not allow modifications"):
+        assert form.status = STATUS_OPEN
+    end
+
+    # len de preguntas > 0
+    with_attr error_message("the number of questions must be greater than 0"):
+        assert_le(0, dquestions_len)
+    end
+
+
     # que el hash coincida con el del form
-    assert form.secret_hash = secret_hash
+    with_attr error_message("Secret incorrect"):
+        assert form.secret_hash = secret_hash
+    end
 
     #add questions
     _add_questions(id_form, dquestions_len, dquestions)
@@ -333,7 +370,26 @@ end
 func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
 ) -> ():
+
+    # que exista el form
+    let (count) = forms_count.read()
+    with_attr error_message("Form not found"):
+        assert_in_range(id_form, 0, count)
+    end
+
     let (form: Form) = forms.read(id_form)
+    
+    # que sea el owner
+    let (caller_address) = get_caller_address()
+    with_attr error_message("Only the owner can modify"):
+        assert form.created_at = caller_address        
+    end
+
+    # que el estado sea open
+    with_attr error_message("the current state does not allow modifications"):
+        assert form.status = STATUS_OPEN
+    end
+
     _change_status_ready_form(id_form, form.name, form.secret_hash)
     return ()
 end
@@ -344,21 +400,35 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> ():
     alloc_locals
 
+
+    # que exista el form
     let (count) = forms_count.read()
     with_attr error_message("Form not found"):
-        assert_in_range(id_form + 1 , 0, count +1)
+        assert_in_range(id_form, 0, count)
     end
 
+    let (form: Form) = forms.read(id_form)
+    
+    # que el estado sea ready
+    with_attr error_message("the current state does not allow modifications"):
+        assert form.status = STATUS_READY
+    end
+
+    # que coincida cantidad de preguntas con cantidad de respuestas
     let (count_question) = questions_count.read(id_form)
     with_attr error_message("Length of answers must be equal to the number of questions"):
         assert answers_len = count_question
     end
 
+    # que el usuario no haya respondido el form
     let (caller_address) = get_caller_address()
     let (bool) = check_users_form.read(caller_address, id_form)
     with_attr error_message("You have already answered this form"):
         assert bool = FALSE
     end
+
+    # que no sea el owner
+    
 
     # guardo la respuesta del usuario
     _recurse_add_answers(id_form, count_question, answers, 0, caller_address)
@@ -386,7 +456,19 @@ func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
     secret: felt
 ) -> ():
     alloc_locals
+
+    # que exista el form
+    let (count) = forms_count.read()
+    with_attr error_message("Form not found"):
+        assert_in_range(id_form, 0, count)
+    end
+
     let (form: Form) = forms.read(id_form)
+    
+    # que el estado sea ready
+    with_attr error_message("the current state does not allow modifications"):
+        assert form.status = STATUS_READY
+    end
 
     # verifico que el secreto sea el mismo que el que se creo el form
     # hash(secret) == form.secret_hash
@@ -511,8 +593,6 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     dquestions : Question*
 ) -> ():
     alloc_locals
-    #len > 0
-    assert_le(0, dquestions_len)
 
     # let (count_question) = questions_count.read(id_form)
     let count_question = 0
