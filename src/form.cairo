@@ -156,7 +156,7 @@ func view_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count)
 end
 
-# ver preguntas por form
+# ver pregunta por form
 @view
 func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt,
@@ -181,7 +181,7 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     return (count_question, records)
 end
 
-# ver cantiad de preguntas por form
+# ver cantidad de preguntas por form
 @view
 func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -207,7 +207,6 @@ func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
 ) -> (records_len : felt, records : Row*):
     alloc_locals
 
-    # let (records : (felt, felt)*) = alloc()
     let (records : Row*) = alloc()
     let (count) = count_users_form.read(id_form)
     _recurse_view_answers_records(id_form, count, records, 0)
@@ -254,7 +253,65 @@ func view_users_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
 end
 
 # como usuario quiero ver mis forms completados
+@view
+func view_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt
+) -> (records_len: felt, records: Row*):
+    alloc_locals
+    let (count: felt) = forms_count.read()
+    let (records: Row*) = alloc()
+    _recurse_my_score_forms_completed(user_address, 0, count, records, 0)
+    let (count_forms_completed) = _recurse_count_my_score_forms_completed(user_address, 0, count, records)
+    return (count_forms_completed, records)
+end
 
+func _recurse_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt,
+    index: felt,
+    len: felt,
+    records: Row*,
+    idx: felt
+) -> ():
+    if len == 0:
+        return()
+    end
+
+    let (bool) = check_users_form.read(user_address, index)
+    if bool == TRUE:
+        let (user: felt) = users_form.read(index, idx)
+        let (point) = points_users_form.read(user, index)
+        let (nickname) = nickname_users_form.read(user, index)
+        assert records[idx] = Row(index, user, nickname, point)
+        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx + 1)
+        return()
+    else:
+        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx)
+        return()
+    end
+end
+
+func _recurse_count_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt,
+    index: felt,
+    len: felt,
+    records: Row*
+) -> (len: felt):
+    alloc_locals
+    if len == 0:
+        return(0)
+    end
+
+    let (bool) = check_users_form.read(user_address, index)
+    local t
+    if bool == TRUE:
+        t = 1
+    else:
+        t = 0
+    end
+    let (local total) = _recurse_count_my_score_forms_completed(user_address, index, len - 1, records)
+    let res = t + total
+    return (res)
+end
 
 #
 # Externals
@@ -687,7 +744,7 @@ func _recurse_view_answers_records{
     let (user: felt) = users_form.read(id_form, idx)
     let (point) = points_users_form.read(user, id_form)
     let (nickname) = nickname_users_form.read(user, id_form)
-    assert arr[idx] = Row(user, nickname, point)
+    assert arr[idx] = Row(id_form, user, nickname, point)
 
     _recurse_view_answers_records(id_form, len, arr, idx + 1)
     return ()

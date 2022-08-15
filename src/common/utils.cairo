@@ -17,6 +17,7 @@ struct Question:
 end
 
 struct Row:
+    member id_form: felt
     member user: felt
     member nickname: felt
     member score: felt
