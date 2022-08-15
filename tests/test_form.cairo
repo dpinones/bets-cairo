@@ -161,6 +161,33 @@ func test_updated_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     return ()
 end
 
+@external 
+func test_forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+
+    alloc_locals
+    let (contract_address) = test_integration.deploy_contract()
+    let (form: Form) = IForm.view_form(
+        contract_address=contract_address,
+        id_form=0
+    )
+
+    assert form.status = STATUS_OPEN
+
+    IForm.forms_change_status_ready(
+        contract_address=contract_address,
+        id_form=0
+    )
+
+    let (form1: Form) = IForm.view_form(
+        contract_address=contract_address,
+        id_form=0
+    )
+
+    assert form1.status = STATUS_READY
+
+    return()
+
+end
 # --------------------------
 # INTEGRATION TEST FUNCTIONS
 # --------------------------
