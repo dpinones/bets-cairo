@@ -66,6 +66,11 @@ namespace IForm:
         user: felt
     ) -> (records_len : felt, records : felt*):
     end
+
+    func view_my_score_forms_completed(
+        user_address: felt
+    ) -> (records_len: felt, records: Row*):
+    end
     
     func create_form(
         name: felt,

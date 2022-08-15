@@ -71,37 +71,37 @@ end
 
 ### USERS ###
 
-# respuesta nro por form / forma de obtener la lista de usuarios por form
+# forma de obtener la lista de usuarios por form
 @storage_var
-func users_form(id_form: felt, id_answer: felt) -> (user: felt):
+func users_form(id_form: felt, count_user: felt) -> (user: felt):
 end
 
-#cantidad de usuarios por form
+# cantidad de usuarios por form
 @storage_var
 func count_users_form(id_form: felt) -> (count_users: felt):
 end
 
-#cantidad de forms por usuario
+# cantidad de forms por usuario (PROFE)
 @storage_var
 func count_forms_by_user(user_address: felt) -> (count_forms: felt):
 end
 
-#usuarios que hicieron el form / boolean
+# usuarios que hicieron el form / boolean
 @storage_var
 func check_users_form(user_address: felt, id_form: felt) -> (bool: felt):
 end
 
-#usuarios que hicieron el form / nickname
+# usuarios que hicieron el form / nickname
 @storage_var
 func nickname_users_form(user_address: felt, id_form: felt) -> (nickname: felt):
 end
 
-#puntos de un usuario por form
+# puntos de un usuario por form
 @storage_var
 func points_users_form(user_address: felt, id_form: felt) -> (points: felt):
 end
 
-#respuestas de un usuario por form
+# respuestas de un usuario por form
 @storage_var
 func answer_users_form(user_address: felt, id_form: felt, id_question : felt) -> (
     answer : felt
@@ -200,7 +200,7 @@ func view_users_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return (count)
 end
 
-# ver el score se un form
+# ver el score de un form
 @view
 func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -278,10 +278,9 @@ func _recurse_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashB
 
     let (bool) = check_users_form.read(user_address, index)
     if bool == TRUE:
-        let (user: felt) = users_form.read(index, idx)
-        let (point) = points_users_form.read(user, index)
-        let (nickname) = nickname_users_form.read(user, index)
-        assert records[idx] = Row(index, user, nickname, point)
+        let (point) = points_users_form.read(user_address, index)
+        let (nickname) = nickname_users_form.read(user_address, index)
+        assert records[idx] = Row(index, user_address, nickname, point)
         _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx + 1)
         return()
     else:
@@ -308,7 +307,7 @@ func _recurse_count_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr :
     else:
         t = 0
     end
-    let (local total) = _recurse_count_my_score_forms_completed(user_address, index, len - 1, records)
+    let (local total) = _recurse_count_my_score_forms_completed(user_address, index + 1, len - 1, records)
     let res = t + total
     return (res)
 end
@@ -698,7 +697,7 @@ func _recurse_view_correct_form_answers{
     end
 
     let (question: Question) = questions.read(id_form, idx)
-    # let (option_correct) = correct_form_answers.read(id_form, idx)
+    #estaria bueno una vez cerrado retornar un array con las posiciones de las respuestas correctas
     assert arr[idx] = question.option_correct_hash
 
     _recurse_view_correct_form_answers(id_form, len, arr, idx + 1)
