@@ -158,6 +158,17 @@ end
 
 # ver preguntas por form
 @view
+func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    id_form : felt,
+    id_question : felt
+) -> (question: Question):
+
+    let (question : Question) = questions.read(id_form, id_question)
+    return (question)
+end
+
+# ver preguntas por form
+@view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
 ) -> (records_len : felt, records : Question*):

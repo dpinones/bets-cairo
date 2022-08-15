@@ -25,6 +25,12 @@ namespace IForm:
     ):
     end
     
+    func view_question(
+        id_form : felt,
+        id_question : felt
+    ) -> (question: Question):
+    end
+
     func view_questions(
         id_form : felt
     ) -> (records_len : felt, records : Question*):
