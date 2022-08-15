@@ -40,68 +40,57 @@ end
 # Storage
 #
 
-### FORM ###
-
-#lista de form
+# forms list
 @storage_var
 func forms(id_form: felt) -> (form: Form):
 end
 
-#cantidad de form
+# amount of forms
 @storage_var
 func forms_count() -> (count: felt):
 end
 
-### QUESTION ###
-
-#lista de preguntas
+# questions list
 @storage_var
 func questions(id_form: felt, id_question: felt) -> (question: Question):
 end
 
-#cantidad de preguntas por form
+# amount of questions in form
 @storage_var
 func questions_count(id_form: felt) -> (questions_count: felt):
 end
 
-#respuestas correctas por form / de uso interno
-# @storage_var
-# func correct_form_answers(id_form: felt, id_question: felt) -> (correct_form_answer: felt):
-# end
-
-### USERS ###
-
-# forma de obtener la lista de usuarios por form
+# list of users who completed the form
 @storage_var
 func users_form(id_form: felt, count_user: felt) -> (user: felt):
 end
 
-# cantidad de usuarios por form
+# amount of users in form
 @storage_var
 func count_users_form(id_form: felt) -> (count_users: felt):
 end
 
-# cantidad de forms por usuario (PROFE)
+# amount of forms you create
 @storage_var
 func count_forms_by_user(user_address: felt) -> (count_forms: felt):
 end
 
-# usuarios que hicieron el form / boolean
+# users who completed the form / bool
 @storage_var
 func check_users_form(user_address: felt, id_form: felt) -> (bool: felt):
 end
 
-# usuarios que hicieron el form / nickname
+# users who completed the form / nickname
 @storage_var
 func nickname_users_form(user_address: felt, id_form: felt) -> (nickname: felt):
 end
 
-# puntos de un usuario por form
+# points of a user obtained in a form
 @storage_var
 func points_users_form(user_address: felt, id_form: felt) -> (points: felt):
 end
 
-# respuestas de un usuario por form
+# responses from a user for a form
 @storage_var
 func answer_users_form(user_address: felt, id_form: felt, id_question : felt) -> (
     answer : felt
@@ -109,14 +98,9 @@ func answer_users_form(user_address: felt, id_form: felt, id_question : felt) ->
 end
 
 #
-# Modifier
-#
-
-#
 # Getters
 #
 
-# ver forms
 @view
 func view_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form: felt
@@ -125,7 +109,6 @@ func view_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr
     return (res)
 end
 
-# ver cantidad de forms que cree (PROFE)
 @view
 func view_count_forms_by_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     user_address: felt
@@ -134,7 +117,6 @@ func view_count_forms_by_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, 
     return (count_users_form)
 end
 
-# ver mis forms que cree(PROFE)
 @view
 func view_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     user_address: felt
@@ -147,7 +129,6 @@ func view_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     return (count_forms, records)
 end
 
-# ver cantidad de forms
 @view
 func view_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}() -> (
     count : felt
@@ -156,7 +137,6 @@ func view_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count)
 end
 
-# ver pregunta por form
 @view
 func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt,
@@ -167,7 +147,6 @@ func view_question{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check
     return (question)
 end
 
-# ver preguntas por form
 @view
 func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -181,7 +160,6 @@ func view_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
     return (count_question, records)
 end
 
-# ver cantidad de preguntas por form
 @view
 func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -190,7 +168,6 @@ func view_question_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range
     return (count)
 end
 
-# ver cantidad de usuarios que hicieron un form
 @view
 func view_users_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -200,7 +177,6 @@ func view_users_form_count{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, ran
     return (count)
 end
 
-# ver el score de un form
 @view
 func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -214,7 +190,6 @@ func view_score_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_che
     return (count, records)
 end
 
-# ver el score de un usuario por form
 @view
 func view_score_form_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt, user: felt
@@ -223,7 +198,6 @@ func view_score_form_user{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
     return (point)
 end
 
-# ver respuestas correctas del form
 @view
 func view_correct_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt
@@ -237,7 +211,6 @@ func view_correct_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     return (count, records)
 end
 
-# respuestas de un usuario por form
 @view
 func view_users_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form : felt,
@@ -252,7 +225,6 @@ func view_users_form_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, r
     return (count, records)
 end
 
-# como usuario quiero ver mis forms completados
 @view
 func view_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     user_address: felt
@@ -263,53 +235,6 @@ func view_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuilt
     _recurse_my_score_forms_completed(user_address, 0, count, records, 0)
     let (count_forms_completed) = _recurse_count_my_score_forms_completed(user_address, 0, count, records)
     return (count_forms_completed, records)
-end
-
-func _recurse_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    user_address: felt,
-    index: felt,
-    len: felt,
-    records: Row*,
-    idx: felt
-) -> ():
-    if len == 0:
-        return()
-    end
-
-    let (bool) = check_users_form.read(user_address, index)
-    if bool == TRUE:
-        let (point) = points_users_form.read(user_address, index)
-        let (nickname) = nickname_users_form.read(user_address, index)
-        assert records[idx] = Row(index, user_address, nickname, point)
-        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx + 1)
-        return()
-    else:
-        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx)
-        return()
-    end
-end
-
-func _recurse_count_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
-    user_address: felt,
-    index: felt,
-    len: felt,
-    records: Row*
-) -> (len: felt):
-    alloc_locals
-    if len == 0:
-        return(0)
-    end
-
-    let (bool) = check_users_form.read(user_address, index)
-    local t
-    if bool == TRUE:
-        t = 1
-    else:
-        t = 0
-    end
-    let (local total) = _recurse_count_my_score_forms_completed(user_address, index + 1, len - 1, records)
-    let res = t + total
-    return (res)
 end
 
 #
@@ -326,29 +251,20 @@ func create_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> (id_form: felt):
     alloc_locals
     
-    #validar estado
+    # status correct
     with_attr error_message("status can be 0 or 1"):
         assert_in_range(status_open, 0, 2)
     end
-
-    # len de preguntas > 0
     with_attr error_message("the number of questions must be greater than 0"):
         assert_le(0, dquestions_len)
     end
 
-    #create form
     let (local id_form) = _create_form(name, secret_hash)
-
-    #add questions
     _add_questions(id_form, dquestions_len, dquestions)
-
-    # close form
     if status_open == 0:
         _change_status_ready_form(id_form, name, secret_hash)
     end
-    # guardo my form
     _add_count_user_forms()
-
     FormCreated.emit(id_form)
     return (id_form)
 end
@@ -365,7 +281,6 @@ func updated_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
     alloc_locals
 
 
-    # que exista el form
     let (count) = forms_count.read()
     with_attr error_message("Form not found"):
         assert_in_range(id_form, 0, count)
@@ -373,32 +288,25 @@ func updated_form{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
 
     let (form: Form) = forms.read(id_form)
     
-    # que sea el owner
     let (caller_address) = get_caller_address()
     with_attr error_message("Only the owner can modify"):
         assert form.created_at = caller_address        
     end
 
-    # que el estado sea open
     with_attr error_message("the current state does not allow modifications"):
         assert form.status = STATUS_OPEN
     end
 
-    # len de preguntas > 0
     with_attr error_message("the number of questions must be greater than 0"):
         assert_le(0, dquestions_len)
     end
 
-
-    # que el hash coincida con el del form
     with_attr error_message("Secret incorrect"):
         assert form.secret_hash = secret_hash
     end
 
-    #add questions
     _add_questions(id_form, dquestions_len, dquestions)
 
-    # close form
     if status_open == 0:
         _change_status_ready_form(id_form, name, secret_hash)
     end
@@ -412,7 +320,6 @@ func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
     id_form : felt
 ) -> ():
 
-    # que exista el form
     let (count) = forms_count.read()
     with_attr error_message("Form not found"):
         assert_in_range(id_form, 0, count)
@@ -420,13 +327,11 @@ func forms_change_status_ready{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,
 
     let (form: Form) = forms.read(id_form)
     
-    # que sea el owner
     let (caller_address) = get_caller_address()
     with_attr error_message("Only the owner can modify"):
         assert form.created_at = caller_address        
     end
 
-    # que el estado sea open
     with_attr error_message("the current state does not allow modifications"):
         assert form.status = STATUS_OPEN
     end
@@ -441,8 +346,6 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> ():
     alloc_locals
 
-
-    # que exista el form
     let (count) = forms_count.read()
     with_attr error_message("Form not found"):
         assert_in_range(id_form, 0, count)
@@ -450,42 +353,26 @@ func send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     let (form: Form) = forms.read(id_form)
     
-    # que el estado sea ready
     with_attr error_message("the current state does not allow modifications"):
         assert form.status = STATUS_READY
     end
 
-    # que coincida cantidad de preguntas con cantidad de respuestas
     let (count_question) = questions_count.read(id_form)
     with_attr error_message("Length of answers must be equal to the number of questions"):
         assert answers_len = count_question
     end
 
-    # que el usuario no haya respondido el form
     let (caller_address) = get_caller_address()
     let (bool) = check_users_form.read(caller_address, id_form)
     with_attr error_message("You have already answered this form"):
         assert bool = FALSE
     end
 
-    # que no sea el owner
-    
-
-    # guardo la respuesta del usuario
     _recurse_add_answers(id_form, count_question, answers, 0, caller_address)
-
-###### ESTAS VARIABLES CAPAZ SE PUEDEN UNIFICAR
-    # guardo que el usuario ya realizo el form    
     check_users_form.write(caller_address, id_form, TRUE)
-
     nickname_users_form.write(caller_address, id_form, nickname)
-    
     let (count_users) = count_users_form.read(id_form)
-    # guardo que usuario hizo tal form
     users_form.write(id_form, count_users, caller_address)
-######
-
-    #cantidad de usuarios por form
     count_users_form.write(id_form, count_users + 1)
 
     return ()
@@ -498,7 +385,6 @@ func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 ) -> ():
     alloc_locals
 
-    # que exista el form
     let (count) = forms_count.read()
     with_attr error_message("Form not found"):
         assert_in_range(id_form, 0, count)
@@ -506,32 +392,23 @@ func close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_p
 
     let (form: Form) = forms.read(id_form)
     
-    # que el estado sea ready
     with_attr error_message("the current state does not allow modifications"):
         assert form.status = STATUS_READY
     end
 
-    # verifico que el secreto sea el mismo que el que se creo el form
-    # hash(secret) == form.secret_hash
     let (hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
     with_attr error_message("Secret incorrect"):
         assert hash = form.secret_hash
     end
 
-    #obtengo cantidad de usuarios que hicieron el form
     let (count_users) = count_users_form.read(id_form)
-    #obtengo cantidad de preguntas por form
     let (count_question) = questions_count.read(id_form)
-
     _close_forms(id_form, count_users, count_question, secret)
-
-    # CERRAR EL FORM
     _change_status_close_form(id_form, form.name, form.secret_hash, secret)
 
     return ()
 end
 
-#calculo los puntos de un formulario
 func _close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form: felt,
     count_users: felt,
@@ -543,19 +420,13 @@ func _close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_
         return ()
     end
 
-    #obtener el usuario
     let (user) = users_form.read(id_form, count_users - 1)
-    #obtener los puntos del usuario
     let (point) = _calculate_score(id_form, count_question, 0, user, secret)
-
-    # guardo puntos de usuario en form
     points_users_form.write(user, id_form, point)
-
     _close_forms(id_form, count_users - 1, count_question, secret)
     return ()
 end
 
-#calcula puntos de un usuario
 func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
     id_form: felt, 
     count_answer: felt, 
@@ -568,18 +439,15 @@ func _calculate_score{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
         return (0)
     end
 
-    # respuesta correcta
+    # correct answer -> question.option_correct_hash
     let (question: Question) = questions.read(id_form, idx)
-    # let (option_correct_hash) = correct_form_answers.read(id_form, idx)
 
-    # respuesta del usuario
+    # user response
     let (answer_user_id) = answer_users_form.read(caller_address, id_form, idx)
     let (question: Question) = questions.read(id_form, idx)
     let (answer_user) = _get_answer_for_id(question, answer_user_id)
 
-    # hash(answer_user, secret) == option_correct_hash
-
-    # si la respuesta es correcta
+    # generate the hash to the user response
     let (answer_user_hash) = hash2{hash_ptr=pedersen_ptr}(answer_user, secret)
     local t
     if answer_user_hash == question.option_correct_hash:
@@ -636,12 +504,9 @@ func _add_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_chec
 ) -> ():
     alloc_locals
 
-    # let (count_question) = questions_count.read(id_form)
     let count_question = 0
     _add_a_questions(id_form, count_question, dquestions_len, dquestions)
-
     questions_count.write(id_form, count_question + dquestions_len)
-
     return ()
 end
 
@@ -664,8 +529,8 @@ func _recurse_my_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_c
     end
 
     let (form: Form) = forms.read(index)
+    # If the form is created by me, I save it in the array.
     if  form.created_at == user_address:
-        # assert arr[idx] = form
         assert arr[idx] = Form(form.id, form.name, form.created_at, form.status, form.secret_hash, form.secret)
         _recurse_my_forms(user_address, index + 1, len, arr, idx + 1)
         return ()
@@ -743,7 +608,8 @@ func _recurse_view_answers_records{
     let (user: felt) = users_form.read(id_form, idx)
     let (point) = points_users_form.read(user, id_form)
     let (nickname) = nickname_users_form.read(user, id_form)
-    assert arr[idx] = Row(id_form, user, nickname, point)
+    let (form: Form) = forms.read(id_form)
+    assert arr[idx] = Row(id_form, form.name, form.status ,user, nickname, point)
 
     _recurse_view_answers_records(id_form, len, arr, idx + 1)
     return ()
@@ -757,7 +623,6 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
         return ()
     end
 
-    # respuesta del usuario
     tempvar answer_user : felt
     answer_user = cast([arr], felt)
     
@@ -766,7 +631,6 @@ func _recurse_add_answers{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, rang
         assert_in_range(answer_user, 0, 4)
     end
     
-    # guardo la respuesta del usuario
     answer_users_form.write(caller_address, id_form, idx, answer_user)
 
     _recurse_add_answers(id_form, len - 1, arr + 1, idx + 1, caller_address)
@@ -809,12 +673,6 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     let optionD = [dquestions].optionD
     let option_correct_hash = [dquestions].option_correct_hash
     
-    # with_attr error_message("Option correct must be between 0 and 3"):
-    #     assert_in_range(option_correct_hash, 0, 4)
-    # end
-
-    # correct_form_answers.write(id_form, id_question, option_correct_hash)
-
     questions.write(
         id_form,
         id_question,
@@ -830,4 +688,52 @@ func _add_a_questions{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
 
     _add_a_questions(id_form, id_question + 1, dquestions_len - 1, dquestions + Question.SIZE)
     return ()
+end
+
+func _recurse_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt,
+    index: felt,
+    len: felt,
+    records: Row*,
+    idx: felt
+) -> ():
+    if len == 0:
+        return()
+    end
+
+    let (bool) = check_users_form.read(user_address, index)
+    if bool == TRUE:
+        let (point) = points_users_form.read(user_address, index)
+        let (nickname) = nickname_users_form.read(user_address, index)
+        let (form: Form) = forms.read(index)
+        assert records[idx] = Row(index, form.name, form.status ,user_address, nickname, point)
+        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx + 1)
+        return()
+    else:
+        _recurse_my_score_forms_completed(user_address, index + 1, len - 1, records, idx)
+        return()
+    end
+end
+
+func _recurse_count_my_score_forms_completed{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}(
+    user_address: felt,
+    index: felt,
+    len: felt,
+    records: Row*
+) -> (len: felt):
+    alloc_locals
+    if len == 0:
+        return(0)
+    end
+
+    let (bool) = check_users_form.read(user_address, index)
+    local t
+    if bool == TRUE:
+        t = 1
+    else:
+        t = 0
+    end
+    let (local total) = _recurse_count_my_score_forms_completed(user_address, index + 1, len - 1, records)
+    let res = t + total
+    return (res)
 end
