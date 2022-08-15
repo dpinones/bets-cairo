@@ -1,7 +1,7 @@
 %lang starknet
 
-from src.form import Question
-from src.form import Form
+from src.common.utils import Question, Form, Row
+
 from src.form import STATUS_OPEN
 from src.form import STATUS_READY
 from src.form import STATUS_CLOSED
@@ -224,6 +224,48 @@ func test_send_answer{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_ch
     return()
 
 end
+
+@external 
+func test_close_forms{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*, range_check_ptr}():
+
+    alloc_locals
+    let (contract_address) = test_integration.deploy_contract()
+    let (form: Form) = IForm.view_form(
+        contract_address=contract_address,
+        id_form=0
+    )
+    IForm.forms_change_status_ready(
+        contract_address=contract_address,
+        id_form=0
+    )
+
+    let (local array : felt*) = alloc()
+    assert array[0] = 2
+
+    IForm.send_answer(
+        contract_address=contract_address,
+        id_form=0,
+        nickname='Juan',
+        answers_len=1,
+        answers=array
+    )
+    
+    IForm.close_forms(
+        contract_address=contract_address,
+        id_form=0,
+        secret='starknet'
+    )
+
+    let (records_len : felt, records : Row*) = IForm.view_score_form(
+        contract_address=contract_address,
+        id_form=0
+    )
+
+    assert records[0].score = 5
+    
+    return()
+
+end
 # --------------------------
 # INTEGRATION TEST FUNCTIONS
 # --------------------------
@@ -237,7 +279,7 @@ namespace test_integration:
 
         let secret = 'starknet'
         let (secret_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 0)
-        let (option_correct_hash) = hash2{hash_ptr=pedersen_ptr}(secret, 'celeste')
+        let (option_correct_hash) = hash2{hash_ptr=pedersen_ptr}('celeste', secret)
         let (local array: Question*) = alloc() 
         assert array[0] = Question('El cielo es?', 'rojo', 'gris', 'celeste', 'blanco', option_correct_hash)
         let (id_form) = IForm.create_form(
